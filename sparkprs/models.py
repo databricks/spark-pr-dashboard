@@ -1,7 +1,7 @@
 import google.appengine.ext.ndb as ndb
 from dateutil.parser import parse as parse_datetime
 from dateutil import tz
-from github_api import request, ISSUES_BASE
+from github_api import raw_request, ISSUES_BASE
 import json
 import logging
 import re
@@ -90,7 +90,7 @@ class Issue(ndb.Model):
     def update(self, oauth_token):
         logging.debug("Updating issue %i" % self.number)
         # Record basic information about this pull request
-        issue_response = request(ISSUES_BASE + '/%i' % self.number, oauth_token=oauth_token,
+        issue_response = raw_request(ISSUES_BASE + '/%i' % self.number, oauth_token=oauth_token,
                                  etag=self.etag)
         if issue_response is None:
             logging.debug("Issue %i hasn't changed since last visit; skipping" % self.number)
@@ -105,7 +105,7 @@ class Issue(ndb.Model):
         self.state = issue_json['state']
         # Fetch the comments and search for Jenkins comments
         # TODO: will miss comments if we exceed the pagination limit:
-        comments_json = json.loads(request(ISSUES_BASE + '/%i/comments' % self.number,
+        comments_json = json.loads(raw_request(ISSUES_BASE + '/%i/comments' % self.number,
                                            oauth_token=oauth_token).content)
         for comment in comments_json:
             if comment['user']['login'] == "SparkQA":
