@@ -1,6 +1,6 @@
 ## Spark PR Review Board
 
-This repository hosts the code for [spark-prs.appspot.com](spark-prs.appspot.com), a tool for assisting in [Apache Spark](https://github.com/apache/spark/) pull request review.
+This repository hosts the code for [spark-prs.appspot.com](http://spark-prs.appspot.com), a tool for assisting in [Apache Spark](https://github.com/apache/spark/) pull request review.
 
 ## Development Instructions
 
