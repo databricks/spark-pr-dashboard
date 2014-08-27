@@ -1,0 +1,6 @@
+*.pyc
+lib/
+.DS_Store
+*.iml
+.idea/
+settings.cfg

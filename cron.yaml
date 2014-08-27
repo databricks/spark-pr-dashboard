@@ -1,0 +1,4 @@
+cron:
+- description: update issues
+  url: /tasks/update-issues
+  schedule: every 1 minutes

@@ -1,0 +1,6 @@
+indexes:
+- kind: Issue
+  properties:
+  - name: state
+  - name: updated_at
+    direction: desc
