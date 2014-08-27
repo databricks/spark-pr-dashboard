@@ -74,14 +74,12 @@ class Issue(ndb.Model):
             jira_match = re.match(jira_regex, tag)
             if jira_match:
                 jira = jira_match.groups(0)[0]
-                print jira
                 title_html.append(
                     '<a href="http://issues.apache.org/jira/browse/%s">[%s]</a>' % (jira, jira))
             else:
                 title_html.append(tag)
         title_html.append('<a href="https://www.github.com/apache/spark/pull/%i">%s</a>' %
                           (self.number, title))
-        print "returning title " + ' '.join(title_html)
         return ' '.join(title_html)
 
     @classmethod
