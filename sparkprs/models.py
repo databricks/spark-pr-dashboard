@@ -37,6 +37,7 @@ class Issue(ndb.Model):
     last_jenkins_outcome = ndb.StringProperty()
     state = ndb.StringProperty()
     etag = ndb.StringProperty()
+    comments_json = ndb.JsonProperty()
 
     TAG_REGEX = r"\[[^\]]*\]"
 
@@ -82,6 +83,20 @@ class Issue(ndb.Model):
                           (self.number, title))
         return ' '.join(title_html)
 
+    @property
+    def commenters(self):
+        res = {}  # Indexed by user, since we only display each user once.
+        excluded_users = set(("SparkQA", "AmplabJenkins"))
+        for comment in (self.comments_json or []):
+            user = comment['user']['login']
+            if user not in excluded_users:
+                res[user] = {
+                    'url': comment['html_url'],
+                    'avatar': comment['user']['avatar_url'],
+                    'date': comment['created_at'],
+                }
+        return sorted(res.items(), key=lambda x: x[1]['date'], reverse=True)
+
     @classmethod
     def get_or_create(cls, number):
         key = str(ndb.Key("Issue", number).id())
@@ -105,9 +120,9 @@ class Issue(ndb.Model):
         self.state = issue_json['state']
         # Fetch the comments and search for Jenkins comments
         # TODO: will miss comments if we exceed the pagination limit:
-        comments_json = json.loads(raw_request(ISSUES_BASE + '/%i/comments' % self.number,
+        self.comments_json = json.loads(raw_request(ISSUES_BASE + '/%i/comments' % self.number,
                                            oauth_token=oauth_token).content)
-        for comment in comments_json:
+        for comment in self.comments_json:
             if comment['user']['login'] == "SparkQA":
                 body = comment['body']
                 if "This patch **passes** unit tests" in body:

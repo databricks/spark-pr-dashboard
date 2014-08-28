@@ -28,6 +28,7 @@
                 <th>Number</th>
                 <th>Title</th>
                 <th>Creator</th>
+                <th>Commenters</th>
                 <th>Last Jenkins Outcome</th>
                 <th>Last Updated</th>
             </tr>
@@ -36,6 +37,13 @@
                     <td class="sorttable_numeric">{{issue.number}}</td>
                     <td>{{issue.title_linked | safe}}</td>
                     <td sorttable_customkey="{{issue.user | lower}}">{{issue.user}}</td>
+                    <td sorttable_customkey="{{issue.commenters | count}}">
+                        {% for (username, comment_data) in issue.commenters %}
+                        <a href="{{comment_data['url']}}">
+                            <img src="{{comment_data['avatar']}}&s=16" height="16" width="16" alt="{{username}}">
+                        </a>
+                        {% endfor %}
+                    </td>
                     <td sorttable_customkey="{{issue.last_jenkins_outcome}}">
                         {% if issue.last_jenkins_outcome == "Pass" %}
                         <span class="glyphicon glyphicon-ok text-success"></span>
