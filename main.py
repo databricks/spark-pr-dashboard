@@ -1,6 +1,7 @@
 import json
 from datetime import datetime
 import logging
+import os
 
 from flask import Flask
 from flask import render_template, session
@@ -14,6 +15,8 @@ from link_header import parse_link_value
 app = Flask(__name__)
 app.config.from_pyfile('settings.cfg')
 
+
+IS_DEV_APPSERVER = os.environ['SERVER_SOFTWARE'].startswith('Development')
 
 @app.route("/tasks/update-issues")
 def update_issues():
@@ -45,10 +48,8 @@ def update_issue(number):
 @app.route('/')
 def main():
     homepage = memcache.get("homepage")
-    if homepage is not None:
-        return homepage
-    else:
+    if IS_DEV_APPSERVER or homepage is None:
         issues = Issue.query(Issue.state == "open").order(-Issue.updated_at).iter()
         homepage = render_template('index.html', session=session, issues=issues)
         memcache.set("homepage", value=homepage, time=60)
-        return homepage
+    return homepage
