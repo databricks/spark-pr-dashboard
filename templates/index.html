@@ -10,6 +10,9 @@
         .github-fork-ribbon {
             background-color: #333;
         }
+        .warning {
+            color: #f0ad4e;
+        }
     </style>
 </head>
 
@@ -46,9 +49,15 @@
                     </td>
                     <td sorttable_customkey="{{issue.last_jenkins_outcome}}">
                         {% if issue.last_jenkins_outcome == "Pass" %}
-                        <span class="glyphicon glyphicon-ok text-success"></span>
+                            <span class="glyphicon glyphicon-ok text-success"></span>
                         {% elif issue.last_jenkins_outcome == "Fail" %}
-                        <span class="glyphicon glyphicon-remove text-danger"></span>
+                            <span class="glyphicon glyphicon-remove text-danger"></span>
+                        {% elif issue.last_jenkins_outcome == "Timeout" %}
+                            <span class="glyphicon glyphicon-time text-danger"></span>
+                        {% elif issue.last_jenkins_outcome == "Running" %}
+                            <span class="glyphicon glyphicon-arrow-right"></span>
+                        {% elif issue.last_jenkins_outcome == "Verify" %}
+                            <span class="glyphicon glyphicon-question-sign warning"></span>
                         {% else %}
                         '{{issue.last_jenkins_outcome}}'
                         {% endif %}

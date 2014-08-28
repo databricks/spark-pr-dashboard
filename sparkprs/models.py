@@ -34,7 +34,6 @@ class Issue(ndb.Model):
     updated_at = ndb.DateTimeProperty()
     user = ndb.StringProperty()
     title = ndb.StringProperty()
-    last_jenkins_outcome = ndb.StringProperty()
     state = ndb.StringProperty()
     etag = ndb.StringProperty()
     comments_json = ndb.JsonProperty()
@@ -97,6 +96,24 @@ class Issue(ndb.Model):
                 }
         return sorted(res.items(), key=lambda x: x[1]['date'], reverse=True)
 
+    @property
+    def last_jenkins_outcome(self):
+        status = None
+        for comment in (self.comments_json or []):
+            if comment['user']['login'] in ("SparkQA", "AmplabJenkins"):
+                body = comment['body']
+                if "This patch **passes** unit tests" in body:
+                    status = "Pass"
+                elif "This patch **fails** unit tests" in body:
+                    status = "Fail"
+                elif "QA tests have started" in body:
+                    status = "Running"
+                elif "Can one of the admins verify this patch?" in body:
+                    status = "Verify"
+                elif "Tests timed out" in body:
+                    status = "Timeout"
+        return status
+
     @classmethod
     def get_or_create(cls, number):
         key = str(ndb.Key("Issue", number).id())
@@ -122,12 +139,5 @@ class Issue(ndb.Model):
         # TODO: will miss comments if we exceed the pagination limit:
         self.comments_json = json.loads(raw_request(ISSUES_BASE + '/%i/comments' % self.number,
                                            oauth_token=oauth_token).content)
-        for comment in self.comments_json:
-            if comment['user']['login'] == "SparkQA":
-                body = comment['body']
-                if "This patch **passes** unit tests" in body:
-                    self.last_jenkins_outcome = "Pass"
-                elif "This patch **fails** unit tests" in body:
-                    self.last_jenkins_outcome = "Fail"
         # Write our modifications back to the database
         self.put()
