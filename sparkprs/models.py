@@ -75,10 +75,12 @@ class Issue(ndb.Model):
             if jira_match:
                 jira = jira_match.groups(0)[0]
                 title_html.append(
-                    '<a href="http://issues.apache.org/jira/browse/%s">[%s]</a>' % (jira, jira))
+                    '<a href="http://issues.apache.org/jira/browse/%s" target="_blank">[%s]</a>' %
+                    (jira, jira))
             else:
                 title_html.append(tag)
-        title_html.append('<a href="https://www.github.com/apache/spark/pull/%i">%s</a>' %
+        title_html.append(
+            '<a href="https://www.github.com/apache/spark/pull/%i" target="_blank">%s</a>' %
                           (self.number, title))
         return ' '.join(title_html)
 

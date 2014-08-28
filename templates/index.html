@@ -42,7 +42,7 @@
                     <td sorttable_customkey="{{issue.user | lower}}">{{issue.user}}</td>
                     <td sorttable_customkey="{{issue.commenters | count}}">
                         {% for (username, comment_data) in issue.commenters %}
-                        <a href="{{comment_data['url']}}">
+                        <a href="{{comment_data['url']}}" target="_blank">
                             <img src="{{comment_data['avatar']}}&s=16" height="16" width="16" alt="{{username}}">
                         </a>
                         {% endfor %}
