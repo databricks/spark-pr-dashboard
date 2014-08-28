@@ -103,17 +103,19 @@ class Issue(ndb.Model):
         status = None
         for comment in (self.comments_json or []):
             if comment['user']['login'] in ("SparkQA", "AmplabJenkins"):
-                body = comment['body']
-                if "This patch **passes** unit tests" in body:
+                body = comment['body'].lower()
+                if "pass" in body:
                     status = "Pass"
-                elif "This patch **fails** unit tests" in body:
+                elif "fail" in body:
                     status = "Fail"
-                elif "QA tests have started" in body:
+                elif "started" in body:
                     status = "Running"
-                elif "Can one of the admins verify this patch?" in body:
+                elif "can one of the admins verify this patch?" in body:
                     status = "Verify"
-                elif "Tests timed out" in body:
+                elif "timed out" in body:
                     status = "Timeout"
+                else:
+                    status = None  # So we display "Unknown" instead of an out-of-date status
         return status
 
     @classmethod
