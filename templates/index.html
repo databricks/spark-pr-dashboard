@@ -10,8 +10,8 @@
         .github-fork-ribbon {
             background-color: #333;
         }
-        .warning {
-            color: #f0ad4e;
+        .glyphicon {
+            margin-right: 2px;
         }
     </style>
 </head>
@@ -49,17 +49,17 @@
                     </td>
                     <td sorttable_customkey="{{issue.last_jenkins_outcome}}">
                         {% if issue.last_jenkins_outcome == "Pass" %}
-                            <span class="glyphicon glyphicon-ok text-success"></span>
+                            <i class="glyphicon glyphicon-ok"></i> Passed
                         {% elif issue.last_jenkins_outcome == "Fail" %}
-                            <span class="glyphicon glyphicon-remove text-danger"></span>
+                            <i class="glyphicon glyphicon-remove"></i> Running
                         {% elif issue.last_jenkins_outcome == "Timeout" %}
-                            <span class="glyphicon glyphicon-time text-danger"></span>
+                            <i class="glyphicon glyphicon-time"></i> Timed out
                         {% elif issue.last_jenkins_outcome == "Running" %}
-                            <span class="glyphicon glyphicon-arrow-right"></span>
+                            <i class="glyphicon glyphicon-arrow-right"></i> Running
                         {% elif issue.last_jenkins_outcome == "Verify" %}
-                            <span class="glyphicon glyphicon-question-sign warning"></span>
+                            <i class="glyphicon glyphicon-comment"></i> Admin needed
                         {% else %}
-                        '{{issue.last_jenkins_outcome}}'
+                            <i class="glyphicon glyphicon-question-sign"></i> Unknown
                         {% endif %}
                     </td>
                     <td sorttable_customkey="{{issue.updated_at}}"><abbr class="timeago" title="{{issue.updated_at}}Z">{{issue.updated_at}}</abbr></td>
@@ -71,9 +71,9 @@
 
     </div>
 
-<script type="text/javascript" src="//maxcdn.bootstrapcdn.com/bootstrap/3.2.0/js/bootstrap.min.js"></script>
     <script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
     <script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/jquery-timeago/1.4.0/jquery.timeago.min.js"></script>
+    <script type="text/javascript" src="//maxcdn.bootstrapcdn.com/bootstrap/3.2.0/js/bootstrap.min.js"></script>
     <script type="text/javascript" src="//cdn.jsdelivr.net/sorttable/2/sorttable.min.js"></script>
     <script type="text/javascript">
     jQuery(document).ready(function() {
