@@ -2,15 +2,28 @@
 <head>
     <title>Spark Pull Requests</title>
     <link rel="stylesheet" type="text/css" href="//maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap.min.css" />
+    <link rel="stylesheet" type="text/css" href="//cdn.jsdelivr.net/github-fork-ribbon/0.1.0/gh-fork-ribbon.css">
+    <!--[if lt IE 9]>
+        <link rel="stylesheet" type="text/css" href="//cdn.jsdelivr.net/github-fork-ribbon/0.1.0/gh-fork-ribbon.ie.css">
+    <![endif]-->
+    <style>
+        .github-fork-ribbon {
+            background-color: #333;
+        }
+    </style>
 </head>
 
 <body>
-    <a href="https://github.com/databricks/spark-pr-dashboard"><img style="position: absolute; top: 0; right: 0; border: 0;" src="https://camo.githubusercontent.com/38ef81f8aca64bb9a64448d0d70f1308ef5341ab/68747470733a2f2f73332e616d617a6f6e6177732e636f6d2f6769746875622f726962626f6e732f666f726b6d655f72696768745f6461726b626c75655f3132313632312e706e67" alt="Fork me on GitHub" data-canonical-src="https://s3.amazonaws.com/github/ribbons/forkme_right_darkblue_121621.png"></a>
+<div class="github-fork-ribbon-wrapper right">
+    <div class="github-fork-ribbon">
+        <a href="https://github.com/databricks/spark-pr-dashboard">Fork me on GitHub</a>
+    </div>
+</div>
     <div class="container-fluid">
         <h2>Spark Pull Requests</h2>
         {% for group in issues | groupby('component') %}
             <h3 id="{{group.grouper}}">{{group.grouper}}</h3>
-            <table class="table table-striped table-condensed">
+            <table class="table table-striped table-condensed sortable">
             <tr>
                 <th>Number</th>
                 <th>Title</th>
@@ -20,10 +33,10 @@
             </tr>
             {% for issue in group.list %}
                 <tr>
-                    <td>{{issue.number}}</td>
+                    <td class="sorttable_numeric">{{issue.number}}</td>
                     <td>{{issue.title_linked | safe}}</td>
-                    <td>{{issue.user}}</td>
-                    <td>
+                    <td sorttable_customkey="{{issue.user | lower}}">{{issue.user}}</td>
+                    <td sorttable_customkey="{{issue.last_jenkins_outcome}}">
                         {% if issue.last_jenkins_outcome == "Pass" %}
                         <span class="glyphicon glyphicon-ok text-success"></span>
                         {% elif issue.last_jenkins_outcome == "Fail" %}
@@ -32,7 +45,7 @@
                         '{{issue.last_jenkins_outcome}}'
                         {% endif %}
                     </td>
-                    <td><abbr class="timeago" title="{{issue.updated_at}}Z">{{issue.updated_at}}</abbr></td>
+                    <td sorttable_customkey="{{issue.updated_at}}"><abbr class="timeago" title="{{issue.updated_at}}Z">{{issue.updated_at}}</abbr></td>
                 </tr>
             {% endfor %}
             </table>
@@ -44,6 +57,7 @@
 <script type="text/javascript" src="//maxcdn.bootstrapcdn.com/bootstrap/3.2.0/js/bootstrap.min.js"></script>
     <script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
     <script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/jquery-timeago/1.4.0/jquery.timeago.min.js"></script>
+    <script type="text/javascript" src="//cdn.jsdelivr.net/sorttable/2/sorttable.min.js"></script>
     <script type="text/javascript">
     jQuery(document).ready(function() {
         jQuery("abbr.timeago").timeago();
