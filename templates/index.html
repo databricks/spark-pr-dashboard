@@ -51,7 +51,7 @@
                         {% if issue.last_jenkins_outcome == "Pass" %}
                             <i class="glyphicon glyphicon-ok"></i> Passed
                         {% elif issue.last_jenkins_outcome == "Fail" %}
-                            <i class="glyphicon glyphicon-remove"></i> Running
+                            <i class="glyphicon glyphicon-remove"></i> Fail
                         {% elif issue.last_jenkins_outcome == "Timeout" %}
                             <i class="glyphicon glyphicon-time"></i> Timed out
                         {% elif issue.last_jenkins_outcome == "Running" %}
