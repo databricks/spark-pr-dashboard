@@ -18,6 +18,7 @@ app.config.from_pyfile('settings.cfg')
 
 IS_DEV_APPSERVER = os.environ['SERVER_SOFTWARE'].startswith('Development')
 
+
 @app.route("/tasks/update-issues")
 def update_issues():
     def fetch_and_process(url):

@@ -81,7 +81,7 @@ class Issue(ndb.Model):
                 title_html.append(tag)
         title_html.append(
             '<a href="https://www.github.com/apache/spark/pull/%i" target="_blank">%s</a>' %
-                          (self.number, title))
+            (self.number, title))
         return ' '.join(title_html)
 
     @property
@@ -127,7 +127,7 @@ class Issue(ndb.Model):
         logging.debug("Updating issue %i" % self.number)
         # Record basic information about this pull request
         issue_response = raw_request(ISSUES_BASE + '/%i' % self.number, oauth_token=oauth_token,
-                                 etag=self.etag)
+                                     etag=self.etag)
         if issue_response is None:
             logging.debug("Issue %i hasn't changed since last visit; skipping" % self.number)
             return
@@ -142,6 +142,6 @@ class Issue(ndb.Model):
         # Fetch the comments and search for Jenkins comments
         # TODO: will miss comments if we exceed the pagination limit:
         self.comments_json = json.loads(raw_request(ISSUES_BASE + '/%i/comments' % self.number,
-                                           oauth_token=oauth_token).content)
+                                        oauth_token=oauth_token).content)
         # Write our modifications back to the database
         self.put()

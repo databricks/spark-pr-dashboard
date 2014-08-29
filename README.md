@@ -1,5 +1,7 @@
 ## Spark PR Review Board
 
+[![Build Status](https://travis-ci.org/databricks/spark-pr-dashboard.svg?branch=master)](https://travis-ci.org/databricks/spark-pr-dashboard)
+
 This repository hosts the code for [spark-prs.appspot.com](http://spark-prs.appspot.com), a tool for assisting in [Apache Spark](https://github.com/apache/spark/) pull request review.
 
 ## Development Instructions
