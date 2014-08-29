@@ -50,7 +50,7 @@ def update_issue(number):
 def main():
     homepage = memcache.get("homepage")
     if IS_DEV_APPSERVER or homepage is None:
-        issues = Issue.query(Issue.state == "open").order(-Issue.updated_at).iter()
+        issues = Issue.query(Issue.state == "open").order(-Issue.updated_at).fetch()
         homepage = render_template('index.html', session=session, issues=issues)
         memcache.set("homepage", value=homepage, time=60)
     return homepage

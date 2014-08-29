@@ -24,8 +24,20 @@
 </div>
     <div class="container-fluid">
         <h2>Spark Pull Requests</h2>
+        <!-- Nav tabs -->
+        <ul class="nav nav-tabs" role="tablist">
         {% for group in issues | groupby('component') %}
-            <h3 id="{{group.grouper}}">{{group.grouper}}</h3>
+            <li class="{% if loop.first %}active{% endif %}">
+                <a href="#{{group.grouper}}" role="tag" data-toggle="tab">{{group.grouper}} <span class="badge">{{group.list | count}}</span></a>
+            </li>
+        {% endfor %}
+        </ul>
+
+        <!-- Tab panes -->
+        <div class="tab-content">
+        {% for group in issues | groupby('component') %}
+            <div class="tab-pane {% if loop.first %}active{% endif %}"
+                 id="{{group.grouper}}">
             <table class="table table-striped table-condensed sortable">
             <tr>
                 <th>Number</th>
@@ -66,9 +78,9 @@
                 </tr>
             {% endfor %}
             </table>
+            </div>
         {% endfor %}
-
-
+        </div>
     </div>
 
     <script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
