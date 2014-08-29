@@ -66,7 +66,7 @@ class Issue(ndb.Model):
         Get this issue's title as a HTML fragment, with referenced JIRAs turned into links
         and the non-category / JIRA portion of the title linked to the issue itself.
         """
-        jira_regex = r"\[(SPARK-\d+)\]"
+        jira_regex = r"(SPARK-\d+)"
         tags = re.findall(Issue.TAG_REGEX, self.title)
         title = re.sub(Issue.TAG_REGEX, "", self.title).strip()
         title_html = []
