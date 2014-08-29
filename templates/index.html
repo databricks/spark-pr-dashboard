@@ -13,6 +13,9 @@
         .glyphicon {
             margin-right: 2px;
         }
+        .popover {
+            max-width: 600px;
+        }
     </style>
 </head>
 
@@ -54,9 +57,13 @@
                     <td sorttable_customkey="{{issue.user | lower}}">{{issue.user}}</td>
                     <td sorttable_customkey="{{issue.commenters | count}}">
                         {% for (username, comment_data) in issue.commenters %}
-                        <a href="{{comment_data['url']}}" target="_blank">
-                            <img src="{{comment_data['avatar']}}&s=16" height="16" width="16" alt="{{username}}">
-                        </a>
+                        <img src="{{comment_data['avatar']}}&s=16"
+                           height="16"
+                           width="16"
+                           alt="{{username}}"
+                           class="comment-link"
+                           data-markdown="{{comment_data['body']}}"
+                           title='<a href="{{comment_data["url"]}}">Comment from {{username}}</a>'>
                         {% endfor %}
                     </td>
                     <td sorttable_customkey="{{issue.last_jenkins_outcome}}">
@@ -87,9 +94,28 @@
     <script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/jquery-timeago/1.4.0/jquery.timeago.min.js"></script>
     <script type="text/javascript" src="//maxcdn.bootstrapcdn.com/bootstrap/3.2.0/js/bootstrap.min.js"></script>
     <script type="text/javascript" src="//cdn.jsdelivr.net/sorttable/2/sorttable.min.js"></script>
+    <script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/marked/0.3.2/marked.min.js"></script>
     <script type="text/javascript">
     jQuery(document).ready(function() {
         jQuery("abbr.timeago").timeago();
+    });
+    $('.comment-link').popover({
+        trigger: "click",
+        placement: "left",
+        html: true,
+        content: function() {
+            return marked($(this).data("markdown"));
+        }
+    });
+    // From http://stackoverflow.com/a/15670200/590203
+    // Only allow one popover to be displayed at a time, and hide popovers
+    // when clicking outside of them:
+    $('html').on('mouseup', function(e) {
+        if(!$(e.target).closest('.popover').length) {
+            $('.popover').each(function(){
+                $(this.previousSibling).popover('hide');
+            });
+        }
     });
     </script>
 </body>

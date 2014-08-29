@@ -95,6 +95,7 @@ class Issue(ndb.Model):
                     'url': comment['html_url'],
                     'avatar': comment['user']['avatar_url'],
                     'date': comment['created_at'],
+                    'body': comment['body'],
                 }
         return sorted(res.items(), key=lambda x: x[1]['date'], reverse=True)
 
