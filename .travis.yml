@@ -5,3 +5,4 @@ install:
   - pip install pep8 --use-mirrors
 script:
   - pep8
+  - python -m doctest sparkprs/utils.py

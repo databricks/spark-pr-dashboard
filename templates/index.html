@@ -44,16 +44,30 @@
             <table class="table table-striped table-condensed sortable">
             <tr>
                 <th>Number</th>
+                <th>JIRAs</th>
                 <th>Title</th>
                 <th>Creator</th>
                 <th>Commenters</th>
-                <th>Last Jenkins Outcome</th>
-                <th>Last Updated</th>
+                <th>Jenkins Status</th>
+                <th>Updated</th>
             </tr>
             {% for issue in group.list %}
                 <tr>
-                    <td class="sorttable_numeric">{{issue.number}}</td>
-                    <td>{{issue.title_linked | safe}}</td>
+                    <td class="sorttable_numeric">
+                        <a href="https://www.github.com/apache/spark/pull/{{issue.number}}" target="_blank">
+                            {{issue.number}}
+                        </a>
+                    </td>
+                    <td>
+                        {% for jira in issue.parsed_title['jiras'] %}
+                        <a href="http://issues.apache.org/jira/browse/SPARK-{{jira}}" target="_blank">{{jira}}</a>
+                        {% endfor %}
+                    </td>
+                    <td>
+                        <a href="https://www.github.com/apache/spark/pull/{{issue.number}}" target="_blank">
+                            {{issue.parsed_title['metadata']}}  {{issue.parsed_title['title']}}
+                        </a>
+                    </td>
                     <td sorttable_customkey="{{issue.user | lower}}">{{issue.user}}</td>
                     <td sorttable_customkey="{{issue.commenters | count}}">
                         {% for (username, comment_data) in issue.commenters %}

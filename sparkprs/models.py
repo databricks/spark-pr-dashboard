@@ -5,6 +5,7 @@ from github_api import raw_request, ISSUES_BASE
 import json
 import logging
 import re
+from sparkprs.utils import parse_pr_title
 
 
 class KVS(ndb.Model):
@@ -61,28 +62,12 @@ class Issue(ndb.Model):
             return "Core"
 
     @property
-    def title_linked(self):
+    def parsed_title(self):
         """
         Get this issue's title as a HTML fragment, with referenced JIRAs turned into links
         and the non-category / JIRA portion of the title linked to the issue itself.
         """
-        jira_regex = r"\[(SPARK-\d+)\]"
-        tags = re.findall(Issue.TAG_REGEX, self.title)
-        title = re.sub(Issue.TAG_REGEX, "", self.title).strip()
-        title_html = []
-        for tag in tags:
-            jira_match = re.match(jira_regex, tag)
-            if jira_match:
-                jira = jira_match.groups(0)[0]
-                title_html.append(
-                    '<a href="http://issues.apache.org/jira/browse/%s" target="_blank">[%s]</a>' %
-                    (jira, jira))
-            else:
-                title_html.append(tag)
-        title_html.append(
-            '<a href="https://www.github.com/apache/spark/pull/%i" target="_blank">%s</a>' %
-            (self.number, title))
-        return ' '.join(title_html)
+        return parse_pr_title(self.title)
 
     @property
     def commenters(self):
