@@ -1,7 +1,7 @@
 import google.appengine.ext.ndb as ndb
 from dateutil.parser import parse as parse_datetime
 from dateutil import tz
-from github_api import raw_request, ISSUES_BASE
+from github_api import raw_request, PULLS_BASE, ISSUES_BASE
 import json
 import logging
 from sparkprs.utils import parse_pr_title
@@ -135,7 +135,7 @@ class Issue(ndb.Model):
     def update(self, oauth_token):
         logging.debug("Updating issue %i" % self.number)
         # Record basic information about this pull request
-        issue_response = raw_request(ISSUES_BASE + '/%i' % self.number, oauth_token=oauth_token,
+        issue_response = raw_request(PULLS_BASE + '/%i' % self.number, oauth_token=oauth_token,
                                      etag=self.etag)
         if issue_response is None:
             logging.debug("Issue %i hasn't changed since last visit; skipping" % self.number)
@@ -151,13 +151,13 @@ class Issue(ndb.Model):
         # TODO: will miss comments if we exceed the pagination limit:
         comments_response = raw_request(ISSUES_BASE + '/%i/comments' % self.number,
                                         oauth_token=oauth_token, etag=self.comments_etag)
-        if comments_response:
+        if comments_response is not None:
             self.comments_json = json.loads(comments_response.content)
             self.comments_etag = comments_response.headers["ETag"]
 
-        files_response = raw_request(ISSUES_BASE + "/%i/files" % self.number,
+        files_response = raw_request(PULLS_BASE + "/%i/files" % self.number,
                                      oauth_token=oauth_token, etag=self.files_etag)
-        if files_response:
+        if files_response is not None:
             self.files_json = json.loads(files_response.content)
             self.files_etag = files_response.headers["ETag"]
 

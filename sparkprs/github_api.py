@@ -2,7 +2,8 @@ from google.appengine.api import urlfetch
 
 
 BASE_URL = 'https://api.github.com/'
-ISSUES_BASE = BASE_URL + "repos/apache/spark/pulls"
+ISSUES_BASE = BASE_URL + "repos/apache/spark/issues"
+PULLS_BASE = BASE_URL + "repos/apache/spark/pulls"
 
 
 def request(resource, oauth_token=None, etag=None):
