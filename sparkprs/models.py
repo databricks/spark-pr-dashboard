@@ -4,7 +4,6 @@ from dateutil import tz
 from github_api import raw_request, ISSUES_BASE
 import json
 import logging
-import re
 from sparkprs.utils import parse_pr_title
 
 
@@ -31,20 +30,23 @@ class KVS(ndb.Model):
 
 class Issue(ndb.Model):
     number = ndb.IntegerProperty(required=True)
-    component = ndb.StringProperty()
     updated_at = ndb.DateTimeProperty()
     user = ndb.StringProperty()
-    title = ndb.StringProperty()
     state = ndb.StringProperty()
-    etag = ndb.StringProperty()
+    title = ndb.StringProperty()
     comments_json = ndb.JsonProperty()
+    comments_etag = ndb.StringProperty()
+    files_json = ndb.JsonProperty()
+    files_etag = ndb.StringProperty()
+    pr_json = ndb.JsonProperty()
+    etag = ndb.StringProperty()
 
     TAG_REGEX = r"\[[^\]]*\]"
 
     @property
     def component(self):
         # TODO: support multiple components
-        title = self.title.lower()
+        title = ((self.pr_json and self.pr_json["title"]) or self.title).lower()
         if "sql" in title:
             return "SQL"
         elif "mllib" in title:
@@ -67,7 +69,28 @@ class Issue(ndb.Model):
         Get this issue's title as a HTML fragment, with referenced JIRAs turned into links
         and the non-category / JIRA portion of the title linked to the issue itself.
         """
-        return parse_pr_title(self.title)
+        return parse_pr_title((self.pr_json and self.pr_json["title"]) or self.title)
+
+    @property
+    def lines_added(self):
+        if self.pr_json:
+            return self.pr_json.get("additions")
+        else:
+            return ""
+
+    @property
+    def lines_deleted(self):
+        if self.pr_json:
+            return self.pr_json.get("deletions")
+        else:
+            return ""
+
+    @property
+    def lines_changed(self):
+        if self.lines_added != "":
+            return self.lines_added + self.lines_deleted
+        else:
+            return 0
 
     @property
     def commenters(self):
@@ -117,17 +140,26 @@ class Issue(ndb.Model):
         if issue_response is None:
             logging.debug("Issue %i hasn't changed since last visit; skipping" % self.number)
             return
-        issue_json = json.loads(issue_response.content)
+        self.pr_json = json.loads(issue_response.content)
         self.etag = issue_response.headers["ETag"]
         updated_at = \
-            parse_datetime(issue_json['updated_at']).astimezone(tz.tzutc()).replace(tzinfo=None)
-        self.user = issue_json['user']['login']
+            parse_datetime(self.pr_json['updated_at']).astimezone(tz.tzutc()).replace(tzinfo=None)
+        self.user = self.pr_json['user']['login']
         self.updated_at = updated_at
-        self.title = issue_json['title']
-        self.state = issue_json['state']
-        # Fetch the comments and search for Jenkins comments
+        self.state = self.pr_json['state']
+
         # TODO: will miss comments if we exceed the pagination limit:
-        self.comments_json = json.loads(raw_request(ISSUES_BASE + '/%i/comments' % self.number,
-                                        oauth_token=oauth_token).content)
+        comments_response = raw_request(ISSUES_BASE + '/%i/comments' % self.number,
+                                        oauth_token=oauth_token, etag=self.comments_etag)
+        if comments_response:
+            self.comments_json = json.loads(comments_response.content)
+            self.comments_etag = comments_response.headers["ETag"]
+
+        files_response = raw_request(ISSUES_BASE + "/%i/files" % self.number,
+                                     oauth_token=oauth_token, etag=self.files_etag)
+        if files_response:
+            self.files_json = json.loads(files_response.content)
+            self.files_etag = files_response.headers["ETag"]
+
         # Write our modifications back to the database
         self.put()

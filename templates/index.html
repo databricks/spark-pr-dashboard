@@ -16,6 +16,12 @@
         .popover {
             max-width: 600px;
         }
+        .lines-added {
+            color: #55a532;
+        }
+        .lines-deleted {
+            color: #bd2c00;
+        }
     </style>
 </head>
 
@@ -48,6 +54,7 @@
                 <th>Title</th>
                 <th>Creator</th>
                 <th>Commenters</th>
+                <th>Changes</th>
                 <th>Jenkins Status</th>
                 <th>Updated</th>
             </tr>
@@ -79,6 +86,10 @@
                            data-markdown="{{comment_data['body']}}"
                            title='<a href="{{comment_data["url"]}}">Comment from {{username}}</a>'>
                         {% endfor %}
+                    </td>
+                    <td sorttable_customkey="{{issue.lines_changed}}">
+                        <span class="lines-added">+{{issue.lines_added}}</span>
+                        <span class="lines-deleted">-{{issue.lines_deleted}}</span>
                     </td>
                     <td sorttable_customkey="{{issue.last_jenkins_outcome}}">
                         {% if issue.last_jenkins_outcome == "Pass" %}

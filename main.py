@@ -17,6 +17,7 @@ app.config.from_pyfile('settings.cfg')
 
 
 IS_DEV_APPSERVER = os.environ['SERVER_SOFTWARE'].startswith('Development')
+VERSION = os.environ['CURRENT_VERSION_ID']
 
 
 @app.route("/tasks/update-issues")
@@ -32,7 +33,7 @@ def update_issues():
             if link.rel == 'next':
                 fetch_and_process(link.href)
     last_update_time = KVS.get("issues_since")
-    url = ISSUES_BASE + "?sort=updated&state=all&per_page=100"
+    url = ISSUES_BASE + "?sort=updated&state=all&direction=desc&per_page=100"
     if last_update_time:
         url += "&since=%s" % last_update_time
     fetch_and_process(url)
@@ -48,9 +49,9 @@ def update_issue(number):
 
 @app.route('/')
 def main():
-    homepage = memcache.get("homepage")
+    homepage = memcache.get("homepage", namespace=VERSION)
     if IS_DEV_APPSERVER or homepage is None:
         issues = Issue.query(Issue.state == "open").order(-Issue.updated_at).fetch()
         homepage = render_template('index.html', session=session, issues=issues)
-        memcache.set("homepage", value=homepage, time=60)
+        memcache.set("homepage", value=homepage, time=60, namespace=VERSION)
     return homepage
