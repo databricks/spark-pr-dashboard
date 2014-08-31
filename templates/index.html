@@ -52,10 +52,11 @@
                 <th>Number</th>
                 <th>JIRAs</th>
                 <th>Title</th>
-                <th>Creator</th>
+                <th>Author</th>
                 <th>Commenters</th>
                 <th>Changes</th>
-                <th>Jenkins Status</th>
+                <th>Merges</th>
+                <th>Jenkins</th>
                 <th>Updated</th>
             </tr>
             {% for issue in group.list %}
@@ -90,6 +91,13 @@
                     <td sorttable_customkey="{{issue.lines_changed}}">
                         <span class="lines-added">+{{issue.lines_added}}</span>
                         <span class="lines-deleted">-{{issue.lines_deleted}}</span>
+                    </td>
+                    <td sorttable_customkey="{{issue.is_mergeable}}">
+                        {% if issue.is_mergeable %}
+                            <i class="glyphicon glyphicon-ok"></i>
+                        {% else %}
+                            <i class="glyphicon glyphicon-remove"></i>
+                        {% endif %}
                     </td>
                     <td sorttable_customkey="{{issue.last_jenkins_outcome}}">
                         {% if issue.last_jenkins_outcome == "Pass" %}

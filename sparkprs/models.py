@@ -93,6 +93,10 @@ class Issue(ndb.Model):
             return 0
 
     @property
+    def is_mergeable(self):
+        return self.pr_json and self.pr_json["mergeable"]
+
+    @property
     def commenters(self):
         res = {}  # Indexed by user, since we only display each user once.
         excluded_users = set(("SparkQA", "AmplabJenkins"))
