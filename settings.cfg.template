@@ -1,2 +1,8 @@
 # OAuth key used for issuing requests against GitHub API
 GITHUB_OAUTH_KEY = ''
+
+# Threshold (in seconds) used for classifying "fresh" pull requests.
+# If a pull request has been updated within the last FRESHNESS_THRESHOLD
+# seconds, then updates for it are fetched using a task queue with a higher
+# processing rate.
+FRESHNESS_THRESHOLD = 60 * 60 * 24

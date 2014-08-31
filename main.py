@@ -1,4 +1,6 @@
 import json
+from dateutil.parser import parse as parse_datetime
+from dateutil import tz
 from datetime import datetime
 import logging
 import os
@@ -27,8 +29,13 @@ def update_issues():
         response = raw_request(url, oauth_token=app.config['GITHUB_OAUTH_KEY'])
         link_header = parse_link_header(response.headers.get('Link', ''))
         prs = json.loads(response.content)
+        now = datetime.utcnow()
         for pr in prs:
-            taskqueue.add(url="/tasks/update-issue/%i" % pr['number'])
+            updated_at = \
+                parse_datetime(pr['updated_at']).astimezone(tz.tzutc()).replace(tzinfo=None)
+            is_fresh = (now - updated_at).total_seconds() < app.config['FRESHNESS_THRESHOLD']
+            queue_name = ("fresh-prs" if is_fresh else "old-prs")
+            taskqueue.add(url="/tasks/update-issue/%i" % pr['number'], queue_name=queue_name)
         for link in link_header.links:
             if link.rel == 'next':
                 fetch_and_process(link.href)
