@@ -4,6 +4,54 @@ Utility functions, placed here for easy testing.
 import re
 
 
+JENKINS_COMMAND_REGEX = r"""
+        (jenkins,?\s*)?                     # Optional address, followed by a command:
+        ((add\s+to\s+whitelist)
+       |((this\s+is\s+)?ok\s+to\s+test)
+       |((re)?test\s+this\s+please)
+       |(skip\s+ci))
+       \.?
+"""
+
+
+def contains_jenkins_command(comment):
+    """
+    Returns True if the comment contains a command for Jenkins.
+
+    >>> contains_jenkins_command("LGTM, pending Jenkins.  Jenkins, retest this please.")
+    True
+    """
+    return re.search(JENKINS_COMMAND_REGEX, comment, re.I | re.X) is not None
+
+
+def is_jenkins_command(comment):
+    """
+    Returns True if the comment consists solely of Jenkins commands.
+    This is heuristic-based; it's easy to identify the presence of Jenkins commands,
+    but trickier to also match surrounding context that's part of the command,
+    such as "Jenkins, ...".
+
+    Single commands:
+    >>> is_jenkins_command("Jenkins, this is ok to test.")
+    True
+
+    Multiple commands:
+    >>> is_jenkins_command(r"Jenkins, this is ok to test.\\nJenkins, test this please.")
+    True
+    >>> is_jenkins_command("ok to test add to whitelist test this please    skip ci")
+    True
+
+    Commands intermixed with other comments:
+    >>> is_jenkins_command("LGTM.  ok to test")
+    False
+    >>> is_jenkins_command("ok to test.  This looks fine.")
+    False
+    """
+    # Check that the comment string is one or more Jenkins commands:
+    regex = "^(%s\s*)+$" % JENKINS_COMMAND_REGEX
+    return re.match(regex, comment.strip().replace(r"\n", ' '), re.I | re.X) is not None
+
+
 def parse_pr_title(pr_title):
     """
     Parse a pull request title to identify JIRAs, categories, and the

@@ -4,7 +4,7 @@ from dateutil import tz
 from github_api import raw_request, PULLS_BASE, ISSUES_BASE
 import json
 import logging
-from sparkprs.utils import parse_pr_title
+from sparkprs.utils import parse_pr_title, is_jenkins_command, contains_jenkins_command
 
 
 class KVS(ndb.Model):
@@ -97,6 +97,8 @@ class Issue(ndb.Model):
         res = {}  # Indexed by user, since we only display each user once.
         excluded_users = set(("SparkQA", "AmplabJenkins"))
         for comment in (self.comments_json or []):
+            if is_jenkins_command(comment['body']):
+                continue  # Skip comments that solely consist of Jenkins commands
             user = comment['user']['login']
             if user not in excluded_users:
                 res[user] = {
@@ -111,7 +113,9 @@ class Issue(ndb.Model):
     def last_jenkins_outcome(self):
         status = None
         for comment in (self.comments_json or []):
-            if comment['user']['login'] in ("SparkQA", "AmplabJenkins"):
+            if contains_jenkins_command(comment['body']):
+                status = "Asked"
+            elif comment['user']['login'] in ("SparkQA", "AmplabJenkins"):
                 body = comment['body'].lower()
                 if "pass" in body:
                     status = "Pass"

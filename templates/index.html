@@ -102,6 +102,8 @@
                             <i class="glyphicon glyphicon-arrow-right"></i> Running
                         {% elif issue.last_jenkins_outcome == "Verify" %}
                             <i class="glyphicon glyphicon-comment"></i> Admin needed
+                        {% elif issue.last_jenkins_outcome == "Asked" %}
+                            <i class="glyphicon glyphicon-comment"></i> Asked to test
                         {% else %}
                             <i class="glyphicon glyphicon-question-sign"></i> Unknown
                         {% endif %}
