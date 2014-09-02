@@ -7,8 +7,8 @@ import logging
 import os
 
 from flask import Flask
-from flask import render_template, session
-from google.appengine.api import taskqueue, memcache
+from flask import render_template, session, make_response
+from google.appengine.api import taskqueue
 
 from sparkprs.models import Issue, KVS
 from sparkprs.github_api import raw_request, ISSUES_BASE
@@ -19,7 +19,6 @@ app = Flask(__name__)
 app.config.from_pyfile('settings.cfg')
 
 
-IS_DEV_APPSERVER = os.environ['SERVER_SOFTWARE'].startswith('Development')
 VERSION = os.environ['CURRENT_VERSION_ID']
 
 
@@ -57,16 +56,15 @@ def update_issue(number):
 
 @app.route('/')
 def main():
-    homepage = memcache.get("homepage", namespace=VERSION)
-    if IS_DEV_APPSERVER or homepage is None:
-        issues = Issue.query(Issue.state == "open").order(-Issue.updated_at).fetch()
-        issues_by_component = defaultdict(list)
-        for issue in issues:
-            for component in issue.components:
-                issues_by_component[component].append(issue)
-        # Display the groups in the order listed in Issues._components
-        grouped_issues = [(c[0], issues_by_component[c[0]]) for c in Issue._components]
-        homepage = render_template('index.html', session=session,
-                                   grouped_issues=grouped_issues)
-        memcache.set("homepage", value=homepage, time=60, namespace=VERSION)
-    return homepage
+    issues = Issue.query(Issue.state == "open").order(-Issue.updated_at).fetch()
+    issues_by_component = defaultdict(list)
+    for issue in issues:
+        for component in issue.components:
+            issues_by_component[component].append(issue)
+    # Display the groups in the order listed in Issues._components
+    grouped_issues = [(c[0], issues_by_component[c[0]]) for c in Issue._components]
+    homepage = render_template('index.html', session=session,
+                               grouped_issues=grouped_issues)
+    response = make_response(homepage)
+    response.cache_control.max_age = 60
+    return response
