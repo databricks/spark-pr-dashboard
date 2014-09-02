@@ -4,6 +4,7 @@ from dateutil import tz
 from github_api import raw_request, PULLS_BASE, ISSUES_BASE
 import json
 import logging
+import re
 from sparkprs.utils import parse_pr_title, is_jenkins_command, contains_jenkins_command
 
 
@@ -43,25 +44,38 @@ class Issue(ndb.Model):
 
     TAG_REGEX = r"\[[^\]]*\]"
 
+    _components = [
+        # (name, pr_title_regex, filename_regex)
+        ("Core", "core", "^core/"),
+        ("Python", "python|pyspark", "python"),
+        ("YARN", "yarn", "yarn"),
+        ("Mesos", "mesos", "mesos"),
+        ("Web UI", "webui|(web ui)", "spark/ui/"),
+        ("Build", "build", "(pom\.xml)|project"),
+        ("Docs", "docs", "docs|README"),
+        ("EC2", "ec2", "ec2"),
+        ("SQL", "sql", "sql"),
+        ("MLlib", "mllib", "mllib"),
+        ("GraphX", "graphx|pregel", "graphx"),
+        ("Streaming", "stream|flume|kafka|twitter|zeromq", "streaming"),
+    ]
+
     @property
-    def component(self):
-        # TODO: support multiple components
-        title = ((self.pr_json and self.pr_json["title"]) or self.title).lower()
-        if "sql" in title:
-            return "SQL"
-        elif "mllib" in title:
-            return "MLlib"
-        elif "graphx" in title or "pregel" in title:
-            return "GraphX"
-        elif "yarn" in title:
-            return "YARN"
-        elif ("stream" in title or "flume" in title or "kafka" in title
-              or "twitter" in title or "zeromq" in title):
-            return "Streaming"
-        elif "python" in title or "pyspark" in title:
-            return "Python"
-        else:
-            return "Core"
+    def components(self):
+        """
+        Returns the list of components used to classify this pull request.
+
+        Components are identified automatically based on the files that the pull request
+        modified and any tags added to the pull request's title (such as [GraphX]).
+        """
+        components = []
+        title = ((self.pr_json and self.pr_json["title"]) or self.title)
+        modified_files = [f["filename"] for f in (self.files_json or [])]
+        for (component_name, pr_title_regex, filename_regex) in Issue._components:
+            if re.search(pr_title_regex, title, re.IGNORECASE) or \
+                    any(re.search(filename_regex, f, re.I) for f in modified_files):
+                components.append(component_name)
+        return components or ["Core"]
 
     @property
     def parsed_title(self):

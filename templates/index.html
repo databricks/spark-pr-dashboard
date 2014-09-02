@@ -35,18 +35,18 @@
         <h2>Spark Pull Requests</h2>
         <!-- Nav tabs -->
         <ul class="nav nav-tabs" role="tablist">
-        {% for group in issues | groupby('component') %}
+        {% for (component, issues) in grouped_issues %}
             <li class="{% if loop.first %}active{% endif %}">
-                <a href="#{{group.grouper}}" role="tag" data-toggle="tab">{{group.grouper}} <span class="badge">{{group.list | count}}</span></a>
+                <a href="#{{component | replace(' ', '')}}" role="tag" data-toggle="tab">{{component}} <span class="badge">{{issues | count}}</span></a>
             </li>
         {% endfor %}
         </ul>
 
         <!-- Tab panes -->
         <div class="tab-content">
-        {% for group in issues | groupby('component') %}
+        {% for (component, issues) in grouped_issues %}
             <div class="tab-pane {% if loop.first %}active{% endif %}"
-                 id="{{group.grouper}}">
+                 id="{{component | replace(' ', '')}}">
             <table class="table table-striped table-condensed sortable">
             <tr>
                 <th>Number</th>
@@ -59,7 +59,7 @@
                 <th>Jenkins</th>
                 <th>Updated</th>
             </tr>
-            {% for issue in group.list %}
+            {% for issue in issues %}
                 <tr>
                     <td class="sorttable_numeric">
                         <a href="https://www.github.com/apache/spark/pull/{{issue.number}}" target="_blank">

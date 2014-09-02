@@ -1,4 +1,5 @@
 import json
+from collections import defaultdict
 from dateutil.parser import parse as parse_datetime
 from dateutil import tz
 from datetime import datetime
@@ -59,6 +60,13 @@ def main():
     homepage = memcache.get("homepage", namespace=VERSION)
     if IS_DEV_APPSERVER or homepage is None:
         issues = Issue.query(Issue.state == "open").order(-Issue.updated_at).fetch()
-        homepage = render_template('index.html', session=session, issues=issues)
+        issues_by_component = defaultdict(list)
+        for issue in issues:
+            for component in issue.components:
+                issues_by_component[component].append(issue)
+        # Display the groups in the order listed in Issues._components
+        grouped_issues = [(c[0], issues_by_component[c[0]]) for c in Issue._components]
+        homepage = render_template('index.html', session=session,
+                                   grouped_issues=grouped_issues)
         memcache.set("homepage", value=homepage, time=60, namespace=VERSION)
     return homepage
