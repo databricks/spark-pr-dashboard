@@ -1,4 +1,5 @@
 import google.appengine.ext.ndb as ndb
+from collections import defaultdict
 from dateutil.parser import parse as parse_datetime
 from dateutil import tz
 from github_api import raw_request, PULLS_BASE, ISSUES_BASE
@@ -42,7 +43,10 @@ class Issue(ndb.Model):
     pr_json = ndb.JsonProperty()
     etag = ndb.StringProperty()
 
-    TAG_REGEX = r"\[[^\]]*\]"
+    ASKED_TO_CLOSE_REGEX = re.compile(r"""
+        (mind\s+closing\s+(this|it))|
+        (close\s+this\s+(issue|pr))
+    """, re.I | re.X)
 
     _components = [
         # (name, pr_title_regex, filename_regex)
@@ -112,19 +116,23 @@ class Issue(ndb.Model):
 
     @property
     def commenters(self):
-        res = {}  # Indexed by user, since we only display each user once.
+        res = defaultdict(dict)  # Indexed by user, since we only display each user once.
         excluded_users = set(("SparkQA", "AmplabJenkins"))
         for comment in (self.comments_json or []):
             if is_jenkins_command(comment['body']):
                 continue  # Skip comments that solely consist of Jenkins commands
             user = comment['user']['login']
             if user not in excluded_users:
-                res[user] = {
-                    'url': comment['html_url'],
-                    'avatar': comment['user']['avatar_url'],
-                    'date': comment['created_at'],
-                    'body': comment['body'],
-                }
+                user_dict = res[user]
+                user_dict['url'] = comment['html_url']
+                user_dict['avatar'] = comment['user']['avatar_url']
+                user_dict['date'] = comment['created_at'],
+                user_dict['body'] = comment['body']
+                user_dict['said_lgtm'] = (user_dict.get('said_lgtm') or
+                                          re.search("lgtm", comment['body'], re.I))
+                user_dict['asked_to_close'] = \
+                    (user_dict.get('asked_to_close')
+                     or Issue.ASKED_TO_CLOSE_REGEX.search(comment['body']))
         return sorted(res.items(), key=lambda x: x[1]['date'], reverse=True)
 
     @property

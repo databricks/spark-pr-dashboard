@@ -22,6 +22,14 @@
         .lines-deleted {
             color: #bd2c00;
         }
+        .lgtm {
+            display: inline-block;
+            border: 3px solid #55a532;
+        }
+        .asked-to-close {
+            display: inline-block;
+            border: 3px solid #bd2c00;
+        }
     </style>
 </head>
 
@@ -79,13 +87,20 @@
                     <td sorttable_customkey="{{issue.user | lower}}">{{issue.user}}</td>
                     <td sorttable_customkey="{{issue.commenters | count}}">
                         {% for (username, comment_data) in issue.commenters %}
-                        <img src="{{comment_data['avatar']}}&s=16"
-                           height="16"
-                           width="16"
-                           alt="{{username}}"
-                           class="comment-link"
-                           data-markdown="{{comment_data['body']}}"
-                           title='<a href="{{comment_data["url"]}}">Comment from {{username}}</a>'>
+                        <span class="
+                                {% if comment_data['said_lgtm'] %}
+                                    lgtm
+                                {% elif comment_data['asked_to_close'] %}
+                                    asked-to-close
+                                {% endif %}">
+                            <img src="{{comment_data['avatar']}}&s=16"
+                               height="16"
+                               width="16"
+                               alt="{{username}}"
+                               class="comment-link"
+                               data-markdown="{{comment_data['body']}}"
+                               title='<a href="{{comment_data["url"]}}">Comment from {{username}}</a>'>
+                        </span>
                         {% endfor %}
                     </td>
                     <td sorttable_customkey="{{issue.lines_changed}}">
