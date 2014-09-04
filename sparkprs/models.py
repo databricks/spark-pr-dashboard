@@ -42,6 +42,9 @@ class Issue(ndb.Model):
     files_etag = ndb.StringProperty()
     pr_json = ndb.JsonProperty()
     etag = ndb.StringProperty()
+    # Cached properties, while we migrate away from on-the-fly computed ones:
+    cached_commenters = ndb.PickleProperty()
+    cached_last_jenkins_outcome = ndb.StringProperty()
 
     ASKED_TO_CLOSE_REGEX = re.compile(r"""
         (mind\s+closing\s+(this|it))|
@@ -116,6 +119,19 @@ class Issue(ndb.Model):
 
     @property
     def commenters(self):
+        if self.cached_commenters is None:
+            self.cached_commenters = self._compute_commenters()
+            self.put()
+        return self.cached_commenters
+
+    @property
+    def last_jenkins_outcome(self):
+        if self.cached_last_jenkins_outcome is None:
+            self.cached_last_jenkins_outcome = self._compute_last_jenkins_outcome()
+            self.put()
+        return self.cached_last_jenkins_outcome
+
+    def _compute_commenters(self):
         res = defaultdict(dict)  # Indexed by user, since we only display each user once.
         excluded_users = set(("SparkQA", "AmplabJenkins"))
         for comment in (self.comments_json or []):
@@ -129,15 +145,14 @@ class Issue(ndb.Model):
                 user_dict['date'] = comment['created_at'],
                 user_dict['body'] = comment['body']
                 user_dict['said_lgtm'] = (user_dict.get('said_lgtm') or
-                                          re.search("lgtm", comment['body'], re.I))
+                                          re.search("lgtm", comment['body'], re.I) is not None)
                 user_dict['asked_to_close'] = \
                     (user_dict.get('asked_to_close')
-                     or Issue.ASKED_TO_CLOSE_REGEX.search(comment['body']))
+                     or Issue.ASKED_TO_CLOSE_REGEX.search(comment['body']) is not None)
         return sorted(res.items(), key=lambda x: x[1]['date'], reverse=True)
 
-    @property
-    def last_jenkins_outcome(self):
-        status = None
+    def _compute_last_jenkins_outcome(self):
+        status = "Unknown"
         for comment in (self.comments_json or []):
             if contains_jenkins_command(comment['body']):
                 status = "Asked"
@@ -154,7 +169,7 @@ class Issue(ndb.Model):
                 elif "timed out" in body:
                     status = "Timeout"
                 else:
-                    status = None  # So we display "Unknown" instead of an out-of-date status
+                    status = "Unknown"  # So we display "Unknown" instead of an out-of-date status
         return status
 
     @classmethod
@@ -190,6 +205,9 @@ class Issue(ndb.Model):
         if files_response is not None:
             self.files_json = json.loads(files_response.content)
             self.files_etag = files_response.headers["ETag"]
+
+        self.cached_last_jenkins_outcome = self._compute_last_jenkins_outcome()
+        self.cached_commenters = self._compute_commenters()
 
         # Write our modifications back to the database
         self.put()
