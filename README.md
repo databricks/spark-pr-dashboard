@@ -15,3 +15,8 @@ This repository hosts the code for [spark-prs.appspot.com](http://spark-prs.apps
 3. Run `git submodule init` and `git submodule update` to fetch Git submodules.
 4. Create a `settings.cfg` file (see `settings.cfg.template`)
 5. Run `dev_appserver.py .` and browse to [http://localhost:8080](http://localhost:8080) to view the application.
+
+
+## License
+
+This project is licensed under the Apache 2.0 License. See LICENSE for full license text.
