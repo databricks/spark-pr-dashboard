@@ -7,8 +7,9 @@ import logging
 import os
 
 from flask import Flask
-from flask import render_template, session, make_response
-from google.appengine.api import taskqueue
+from flask import render_template, redirect, session, make_response
+from gae_mini_profiler.templatetags import profiler_includes
+from google.appengine.api import taskqueue, users
 
 from sparkprs.models import Issue, KVS
 from sparkprs.github_api import raw_request, ISSUES_BASE
@@ -54,6 +55,11 @@ def update_issue(number):
     return "Done updating issue %i" % number
 
 
+@app.route('/login')
+def login():
+    return redirect(users.create_login_url("/"))
+
+
 @app.route('/')
 def main():
     issues = Issue.query(Issue.state == "open").order(-Issue.updated_at).fetch()
@@ -64,7 +70,7 @@ def main():
     # Display the groups in the order listed in Issues._components
     grouped_issues = [(c[0], issues_by_component[c[0]]) for c in Issue._components]
     homepage = render_template('index.html', session=session,
-                               grouped_issues=grouped_issues)
+                               grouped_issues=grouped_issues, profiler_includes=profiler_includes())
     response = make_response(homepage)
     response.cache_control.max_age = 60
     return response

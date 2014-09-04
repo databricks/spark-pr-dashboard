@@ -12,6 +12,6 @@ This repository hosts the code for [spark-prs.appspot.com](http://spark-prs.apps
    ```
    pip install -r requirements.txt -t lib
    ```
-3. Create a `settings.cfg` file (see `settings.cfg.template`)
-3. Run `dev_appserver.py .` and browse to [http://localhost:8080](http://localhost:8080) to view the application.
-
+3. Run `git submodule init` and `git submodule update` to fetch Git submodules.
+4. Create a `settings.cfg` file (see `settings.cfg.template`)
+5. Run `dev_appserver.py .` and browse to [http://localhost:8080](http://localhost:8080) to view the application.

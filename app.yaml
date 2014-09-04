@@ -5,5 +5,12 @@ api_version: 1
 threadsafe: yes
 
 handlers:
+- url: /gae_mini_profiler/static
+  static_dir: gae_mini_profiler/static
+- url: /gae_mini_profiler/.*
+  script: gae_mini_profiler.main.application
 - url: .*  # Route all requets to the WSGI application
   script: main.app
+
+builtins:
+- appstats: on
