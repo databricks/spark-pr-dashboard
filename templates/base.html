@@ -1,0 +1,110 @@
+<html>
+<head>
+    <title>{% block title %}Spark Pull Requests{% endblock %}</title>
+    <link rel="stylesheet" type="text/css" href="//maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap.min.css" />
+    <link rel="stylesheet" type="text/css" href="//cdn.jsdelivr.net/github-fork-ribbon/0.1.0/gh-fork-ribbon.css">
+    <!--[if lt IE 9]>
+    <link rel="stylesheet" type="text/css" href="//cdn.jsdelivr.net/github-fork-ribbon/0.1.0/gh-fork-ribbon.ie.css">
+    <![endif]-->
+    <style>
+        .github-fork-ribbon {
+            background-color: #333;
+        }
+        .glyphicon {
+            margin-right: 2px;
+        }
+        .popover {
+            max-width: 600px;
+        }
+        .lines-added {
+            color: #55a532;
+        }
+        .lines-deleted {
+            color: #bd2c00;
+        }
+        .lgtm {
+            display: inline-block;
+            border: 3px solid #55a532;
+        }
+        .asked-to-close {
+            display: inline-block;
+            border: 3px solid #bd2c00;
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="github-fork-ribbon-wrapper right">
+    <div class="github-fork-ribbon">
+        <a href="https://github.com/databricks/spark-pr-dashboard">Fork me on GitHub</a>
+    </div>
+</div>
+
+<nav class="navbar navbar-default" role="navigation">
+    <div class="container-fluid">
+        <div class="navbar-header">
+            <a class="navbar-brand" href=".">Spark Pull Requests</a>
+        </div>
+
+        <!-- See http://jinja.pocoo.org/docs/dev/tricks/#highlighting-active-menu-items -->
+        <ul class="nav navbar-nav">
+            {% for href, id, label in navigation_bar %}
+            <li{% if id == active_page %} class="active"{% endif%}>
+                <a href="{{ href|e }}">{{ label|e }}</a>
+            </li>
+            {% endfor %}
+        </ul>
+    </div><!-- /.container-fluid -->
+</nav>
+
+<div class="container-fluid">
+    {% block content %}
+    {% endblock %}
+</div>
+<script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
+<script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/jquery-timeago/1.4.0/jquery.timeago.min.js"></script>
+<script type="text/javascript" src="//maxcdn.bootstrapcdn.com/bootstrap/3.2.0/js/bootstrap.min.js"></script>
+<script type="text/javascript" src="//cdn.jsdelivr.net/sorttable/2/sorttable.min.js"></script>
+<script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/marked/0.3.2/marked.min.js"></script>
+<script type="text/javascript">
+    jQuery(document).ready(function() {
+        jQuery("abbr.timeago").timeago();
+    });
+    $('.comment-link').popover({
+        trigger: "click",
+        placement: "left",
+        html: true,
+        content: function() {
+            return marked($(this).data("markdown"));
+        }
+    });
+    // From http://stackoverflow.com/a/15670200/590203
+    // Only allow one popover to be displayed at a time, and hide popovers
+    // when clicking outside of them:
+    $('html').on('mouseup', function(e) {
+        if(!$(e.target).closest('.popover').length) {
+            $('.popover').each(function(){
+                $(this.previousSibling).popover('hide');
+            });
+        }
+    });
+    </script>
+<script type="text/javascript">
+    // Copy pasta sauce: http://stackoverflow.com/a/12138756
+    // Give the various tabs anchor tags.
+    $(function(){
+      var hash = window.location.hash;
+      hash && $('ul.nav a[href="' + hash + '"]').tab('show');
+
+      $('.nav-tabs a').click(function (e) {
+        $(this).tab('show');
+        var scrollmem = $('body').scrollTop();
+        window.location.hash = this.hash;
+        $('html,body').scrollTop(scrollmem);
+      });
+    });
+    </script>
+{{ profiler_includes | safe }}
+</body>
+</html>

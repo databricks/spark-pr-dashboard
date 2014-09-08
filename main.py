@@ -7,7 +7,7 @@ import logging
 import os
 
 from flask import Flask
-from flask import render_template, redirect, session, make_response
+from flask import render_template, redirect, session, make_response, url_for
 from gae_mini_profiler.templatetags import profiler_includes
 from google.appengine.api import taskqueue, users
 
@@ -60,6 +60,31 @@ def login():
     return redirect(users.create_login_url("/"))
 
 
+@app.route('/logout')
+def logout():
+    return redirect(users.create_logout_url("/"))
+
+
+def build_response(template, max_age=60, **kwargs):
+    navigation_bar = [
+        # (href, id, label)
+        ('/', 'index', 'Open PRs'),
+    ]
+    default_context = {
+        'profiler_includes': profiler_includes(),
+        'navigation_bar': navigation_bar,
+    }
+    rendered = render_template(template, **(dict(default_context.items() + kwargs.items())))
+    response = make_response(rendered)
+    response.cache_control.max_age = max_age
+    return response
+
+
+@app.route('/admin')
+def admin_panel():
+    return build_response('admin.html')
+
+
 @app.route('/')
 def main():
     issues = Issue.query(Issue.state == "open").order(-Issue.updated_at).fetch()
@@ -69,8 +94,13 @@ def main():
             issues_by_component[component].append(issue)
     # Display the groups in the order listed in Issues._components
     grouped_issues = [(c[0], issues_by_component[c[0]]) for c in Issue._components]
-    homepage = render_template('index.html', session=session,
-                               grouped_issues=grouped_issues, profiler_includes=profiler_includes())
-    response = make_response(homepage)
-    response.cache_control.max_age = 60
-    return response
+    return build_response('index.html', grouped_issues=grouped_issues)
+
+
+@app.route("/users/<username>")
+def users(username):
+    prs = Issue.query(Issue.state == "open").order(-Issue.updated_at).fetch()
+    prs_authored = [p for p in prs if p.user == username]
+    prs_commented_on = [p for p in prs if username in dict(p.commenters) and p.user != username]
+    return build_response('user.html', username=username, prs_authored=prs_authored,
+                          prs_commented_on=prs_commented_on)

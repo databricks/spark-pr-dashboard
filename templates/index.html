@@ -1,188 +1,25 @@
-<html>
-<head>
-    <title>Spark Pull Requests</title>
-    <link rel="stylesheet" type="text/css" href="//maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap.min.css" />
-    <link rel="stylesheet" type="text/css" href="//cdn.jsdelivr.net/github-fork-ribbon/0.1.0/gh-fork-ribbon.css">
-    <!--[if lt IE 9]>
-        <link rel="stylesheet" type="text/css" href="//cdn.jsdelivr.net/github-fork-ribbon/0.1.0/gh-fork-ribbon.ie.css">
-    <![endif]-->
-    <style>
-        .github-fork-ribbon {
-            background-color: #333;
-        }
-        .glyphicon {
-            margin-right: 2px;
-        }
-        .popover {
-            max-width: 600px;
-        }
-        .lines-added {
-            color: #55a532;
-        }
-        .lines-deleted {
-            color: #bd2c00;
-        }
-        .lgtm {
-            display: inline-block;
-            border: 3px solid #55a532;
-        }
-        .asked-to-close {
-            display: inline-block;
-            border: 3px solid #bd2c00;
-        }
-    </style>
-</head>
+{% extends "base.html" %}
+{% set active_page = "index" %}
+{% import "macros.html" as macros %}
 
-<body>
-<div class="github-fork-ribbon-wrapper right">
-    <div class="github-fork-ribbon">
-        <a href="https://github.com/databricks/spark-pr-dashboard">Fork me on GitHub</a>
+
+{% block content %}
+<!-- Navigation tabs -->
+<ul class="nav nav-tabs" role="tablist">
+    {% for (component, issues) in grouped_issues %}
+    <li class="{% if loop.first %}active{% endif %}">
+        <a href="#{{component | replace(' ', '')}}" role="tag" data-toggle="tab">{{component}} <span class="badge">{{issues | count}}</span></a>
+    </li>
+    {% endfor %}
+</ul>
+
+<!-- Tab panes -->
+<div class="tab-content">
+    {% for (component, issues) in grouped_issues %}
+    <div class="tab-pane {% if loop.first %}active{% endif %}"
+         id="{{component | replace(' ', '')}}">
+        {{ macros.issues_table(issues) }}
     </div>
+    {% endfor %}
 </div>
-    <div class="container-fluid">
-        <h2>Spark Pull Requests</h2>
-        <!-- Nav tabs -->
-        <ul class="nav nav-tabs" role="tablist">
-        {% for (component, issues) in grouped_issues %}
-            <li class="{% if loop.first %}active{% endif %}">
-                <a href="#{{component | replace(' ', '')}}" role="tag" data-toggle="tab">{{component}} <span class="badge">{{issues | count}}</span></a>
-            </li>
-        {% endfor %}
-        </ul>
-
-        <!-- Tab panes -->
-        <div class="tab-content">
-        {% for (component, issues) in grouped_issues %}
-            <div class="tab-pane {% if loop.first %}active{% endif %}"
-                 id="{{component | replace(' ', '')}}">
-            <table class="table table-striped table-condensed sortable">
-            <tr>
-                <th>Number</th>
-                <th>JIRAs</th>
-                <th>Title</th>
-                <th>Author</th>
-                <th>Commenters</th>
-                <th>Changes</th>
-                <th>Merges</th>
-                <th>Jenkins</th>
-                <th>Updated</th>
-            </tr>
-            {% for issue in issues %}
-                <tr>
-                    <td class="sorttable_numeric">
-                        <a href="https://www.github.com/apache/spark/pull/{{issue.number}}" target="_blank">
-                            {{issue.number}}
-                        </a>
-                    </td>
-                    <td>
-                        {% for jira in issue.parsed_title['jiras'] %}
-                        <a href="http://issues.apache.org/jira/browse/SPARK-{{jira}}" target="_blank">{{jira}}</a>
-                        {% endfor %}
-                    </td>
-                    <td>
-                        <a href="https://www.github.com/apache/spark/pull/{{issue.number}}" target="_blank">
-                            {{issue.parsed_title['metadata']}}  {{issue.parsed_title['title']}}
-                        </a>
-                    </td>
-                    <td sorttable_customkey="{{issue.user | lower}}">{{issue.user}}</td>
-                    <td sorttable_customkey="{{issue.commenters | count}}">
-                        {% for (username, comment_data) in issue.commenters %}
-                        <span class="
-                                {% if comment_data['said_lgtm'] %}
-                                    lgtm
-                                {% elif comment_data['asked_to_close'] %}
-                                    asked-to-close
-                                {% endif %}">
-                            <img src="{{comment_data['avatar']}}&s=16"
-                               height="16"
-                               width="16"
-                               alt="{{username}}"
-                               class="comment-link"
-                               data-markdown="{{comment_data['body']}}"
-                               title='<a href="{{comment_data["url"]}}">Comment from {{username}}</a>'>
-                        </span>
-                        {% endfor %}
-                    </td>
-                    <td sorttable_customkey="{{issue.lines_changed}}">
-                        <span class="lines-added">+{{issue.lines_added}}</span>
-                        <span class="lines-deleted">-{{issue.lines_deleted}}</span>
-                    </td>
-                    <td sorttable_customkey="{{issue.is_mergeable}}">
-                        {% if issue.is_mergeable %}
-                            <i class="glyphicon glyphicon-ok"></i>
-                        {% else %}
-                            <i class="glyphicon glyphicon-remove"></i>
-                        {% endif %}
-                    </td>
-                    <td sorttable_customkey="{{issue.last_jenkins_outcome}}">
-                        {% if issue.last_jenkins_outcome == "Pass" %}
-                            <i class="glyphicon glyphicon-ok"></i> Passed
-                        {% elif issue.last_jenkins_outcome == "Fail" %}
-                            <i class="glyphicon glyphicon-remove"></i> Failed
-                        {% elif issue.last_jenkins_outcome == "Timeout" %}
-                            <i class="glyphicon glyphicon-time"></i> Timed out
-                        {% elif issue.last_jenkins_outcome == "Running" %}
-                            <i class="glyphicon glyphicon-arrow-right"></i> Running
-                        {% elif issue.last_jenkins_outcome == "Verify" %}
-                            <i class="glyphicon glyphicon-comment"></i> Admin needed
-                        {% elif issue.last_jenkins_outcome == "Asked" %}
-                            <i class="glyphicon glyphicon-comment"></i> Asked to test
-                        {% else %}
-                            <i class="glyphicon glyphicon-question-sign"></i> Unknown
-                        {% endif %}
-                    </td>
-                    <td sorttable_customkey="{{issue.updated_at}}"><abbr class="timeago" title="{{issue.updated_at}}Z">{{issue.updated_at}}</abbr></td>
-                </tr>
-            {% endfor %}
-            </table>
-            </div>
-        {% endfor %}
-        </div>
-    </div>
-
-    <script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
-    <script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/jquery-timeago/1.4.0/jquery.timeago.min.js"></script>
-    <script type="text/javascript" src="//maxcdn.bootstrapcdn.com/bootstrap/3.2.0/js/bootstrap.min.js"></script>
-    <script type="text/javascript" src="//cdn.jsdelivr.net/sorttable/2/sorttable.min.js"></script>
-    <script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/marked/0.3.2/marked.min.js"></script>
-    <script type="text/javascript">
-    jQuery(document).ready(function() {
-        jQuery("abbr.timeago").timeago();
-    });
-    $('.comment-link').popover({
-        trigger: "click",
-        placement: "left",
-        html: true,
-        content: function() {
-            return marked($(this).data("markdown"));
-        }
-    });
-    // From http://stackoverflow.com/a/15670200/590203
-    // Only allow one popover to be displayed at a time, and hide popovers
-    // when clicking outside of them:
-    $('html').on('mouseup', function(e) {
-        if(!$(e.target).closest('.popover').length) {
-            $('.popover').each(function(){
-                $(this.previousSibling).popover('hide');
-            });
-        }
-    });
-    </script>
-    <script type="text/javascript">
-    // Copy pasta sauce: http://stackoverflow.com/a/12138756
-    // Give the various tabs anchor tags.
-    $(function(){
-      var hash = window.location.hash;
-      hash && $('ul.nav a[href="' + hash + '"]').tab('show');
-
-      $('.nav-tabs a').click(function (e) {
-        $(this).tab('show');
-        var scrollmem = $('body').scrollTop();
-        window.location.hash = this.hash;
-        $('html,body').scrollTop(scrollmem);
-      });
-    });
-    </script>
-{{ profiler_includes | safe }}
-</body>
-</html>
+{% endblock %}

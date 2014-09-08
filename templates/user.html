@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% set active_page = "user" %}
+{% import "macros.html" as macros %}
+
+
+{% block title %}
+PRs involving {{username}}
+{% endblock %}
+
+
+{% block content %}
+<div class=".col-lg-12">
+    {% if prs_authored %}
+        <h3>PRs authored by {{username}}</h3>
+        {{ macros.issues_table(prs_authored) }}
+    {% endif %}
+
+    {% if prs_commented_on %}
+        <h3>PRs commented on by {{username}}</h3>
+        {{ macros.issues_table(prs_commented_on) }}
+    {% endif %}
+</div>
+{% endblock %}
