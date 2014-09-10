@@ -1,8 +1,24 @@
 # OAuth key used for issuing requests against GitHub API
 GITHUB_OAUTH_KEY = ''
 
+# Your GitHub application’s client id. Go to
+# https://github.com/settings/applications to register new application.
+GITHUB_CLIENT_ID = ''
+
+# Your GitHub application’s client secret.
+GITHUB_CLIENT_SECRET = ''
+
+# This is the URL that GitHub redirects the user to after authorization. It
+# must match the URL entered on the GitHub application settings page. You can
+# use http://localhost:8080/github-callback in both places during local
+# development.
+GITHUB_CALLBACK_URL = ''
+
 # Threshold (in seconds) used for classifying "fresh" pull requests.
 # If a pull request has been updated within the last FRESHNESS_THRESHOLD
 # seconds, then updates for it are fetched using a task queue with a higher
 # processing rate.
 FRESHNESS_THRESHOLD = 60 * 60 * 24
+
+# Key used to sign cookies; generate one randomly using os.urandom(24)
+SECRET_KEY = ''

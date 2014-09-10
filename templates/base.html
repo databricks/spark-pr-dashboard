@@ -2,14 +2,8 @@
 <head>
     <title>{% block title %}Spark Pull Requests{% endblock %}</title>
     <link rel="stylesheet" type="text/css" href="//maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap.min.css" />
-    <link rel="stylesheet" type="text/css" href="//cdn.jsdelivr.net/github-fork-ribbon/0.1.0/gh-fork-ribbon.css">
-    <!--[if lt IE 9]>
-    <link rel="stylesheet" type="text/css" href="//cdn.jsdelivr.net/github-fork-ribbon/0.1.0/gh-fork-ribbon.ie.css">
-    <![endif]-->
+    <link rel="stylesheet" type="text/css" href="//cdnjs.cloudflare.com/ajax/libs/octicons/2.0.2/octicons.min.css">
     <style>
-        .github-fork-ribbon {
-            background-color: #333;
-        }
         .glyphicon {
             margin-right: 2px;
         }
@@ -30,21 +24,18 @@
             display: inline-block;
             border: 3px solid #bd2c00;
         }
+        .navbar-icon-group {
+            padding-right: 16px;
+        }
     </style>
 </head>
 
 <body>
 
-<div class="github-fork-ribbon-wrapper right">
-    <div class="github-fork-ribbon">
-        <a href="https://github.com/databricks/spark-pr-dashboard">Fork me on GitHub</a>
-    </div>
-</div>
-
 <nav class="navbar navbar-default" role="navigation">
     <div class="container-fluid">
         <div class="navbar-header">
-            <a class="navbar-brand" href=".">Spark Pull Requests</a>
+            <a class="navbar-brand" href="/">Spark Pull Requests</a>
         </div>
 
         <!-- See http://jinja.pocoo.org/docs/dev/tricks/#highlighting-active-menu-items -->
@@ -55,6 +46,22 @@
             </li>
             {% endfor %}
         </ul>
+        <div class="nav navbar-right navbar-icon-group">
+            {% if g.user %}
+                <span class="navbar-text">Signed in as <a href="/users/{{user.github_login}}" class="navbar-link">{{user.github_login}}</a></span>
+                <span class="navbar-brand" data-toggle="tooltip" data-placement="bottom" title="Sign out">
+                    <a href="/logout">
+                        <span class="octicon octicon-sign-out"></span>
+                    </a>
+                </span>
+            {% else %}
+                <span class="navbar-brand" data-toggle="tooltip" data-placement="bottom" title="Sign in">
+                    <a href="/login">
+                        <span class="octicon octicon-sign-in"></span>
+                    </a>
+                </span>
+            {% endif %}
+        </div>
     </div><!-- /.container-fluid -->
 </nav>
 
@@ -89,6 +96,9 @@
             });
         }
     });
+    $('.navbar-brand').tooltip({
+        animation: false
+    })
     </script>
 <script type="text/javascript">
     // Copy pasta sauce: http://stackoverflow.com/a/12138756

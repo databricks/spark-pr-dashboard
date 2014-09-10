@@ -2,7 +2,7 @@ import google.appengine.ext.ndb as ndb
 from collections import defaultdict
 from dateutil.parser import parse as parse_datetime
 from dateutil import tz
-from github_api import raw_request, PULLS_BASE, ISSUES_BASE
+from github_api import raw_github_request, PULLS_BASE, ISSUES_BASE
 import json
 import logging
 import re
@@ -28,6 +28,13 @@ class KVS(ndb.Model):
         kvs_pair.value = value
         kvs_pair.value_str = str(value)
         ndb.Model.put(kvs_pair)
+
+
+class User(ndb.Model):
+    github_login = ndb.StringProperty(required=True)
+    github_access_token = ndb.StringProperty()
+    github_user_json = ndb.JsonProperty()
+    roles = ndb.StringProperty(repeated=True)
 
 
 class Issue(ndb.Model):
@@ -180,8 +187,8 @@ class Issue(ndb.Model):
     def update(self, oauth_token):
         logging.debug("Updating issue %i" % self.number)
         # Record basic information about this pull request
-        issue_response = raw_request(PULLS_BASE + '/%i' % self.number, oauth_token=oauth_token,
-                                     etag=self.etag)
+        issue_response = raw_github_request(PULLS_BASE + '/%i' % self.number,
+                                            oauth_token=oauth_token, etag=self.etag)
         if issue_response is None:
             logging.debug("Issue %i hasn't changed since last visit; skipping" % self.number)
             return
@@ -194,14 +201,14 @@ class Issue(ndb.Model):
         self.state = self.pr_json['state']
 
         # TODO: will miss comments if we exceed the pagination limit:
-        comments_response = raw_request(ISSUES_BASE + '/%i/comments' % self.number,
-                                        oauth_token=oauth_token, etag=self.comments_etag)
+        comments_response = raw_github_request(ISSUES_BASE + '/%i/comments' % self.number,
+                                               oauth_token=oauth_token, etag=self.comments_etag)
         if comments_response is not None:
             self.comments_json = json.loads(comments_response.content)
             self.comments_etag = comments_response.headers["ETag"]
 
-        files_response = raw_request(PULLS_BASE + "/%i/files" % self.number,
-                                     oauth_token=oauth_token, etag=self.files_etag)
+        files_response = raw_github_request(PULLS_BASE + "/%i/files" % self.number,
+                                            oauth_token=oauth_token, etag=self.files_etag)
         if files_response is not None:
             self.files_json = json.loads(files_response.content)
             self.files_etag = files_response.headers["ETag"]
