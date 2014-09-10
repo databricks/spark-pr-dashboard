@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% set active_page = "admin" %}
+
+
+{% block title %}
+Admin interface
+{% endblock %}
+
+
+{% block content %}
+<div class=".col-lg-12">
+    <h3>Add roles</h3>
+    <form role="form" action="/admin/add-role" method="post">
+        <div class="form-group">
+            <label for="addRoleUsername">GitHub username</label>
+            <input class="form-control" id="addRoleUsername" name="username" placeholder="GitHub username">
+        </div>
+        <div class="form-group">
+            <label for="addRoleRole">Role</label>
+            <input class="form-control" id="addRoleRole" name="role" placeholder="Role (e.g. jenkins-admin, admin, etc.)">
+        </div>
+        <button type="submit" class="btn btn-default">Submit</button>
+    </form>
+</div>
+{% endblock %}

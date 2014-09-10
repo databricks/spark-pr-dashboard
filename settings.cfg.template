@@ -22,3 +22,9 @@ FRESHNESS_THRESHOLD = 60 * 60 * 24
 
 # Key used to sign cookies; generate one randomly using os.urandom(24)
 SECRET_KEY = ''
+
+# Token for triggering GitHub pull request builder jobs (set in Jenkins)
+JENKINS_PRB_TOKEN = ''
+
+# URL for viewing the GitHub pull request builder job on Jenkins (should be https://)
+JENKINS_PRB_JOB_URL = ''

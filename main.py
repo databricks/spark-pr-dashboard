@@ -7,13 +7,11 @@ import logging
 import os
 import urllib
 import urlparse
-import random
-import string
 
 from flask import Flask
-from flask import render_template, redirect, session, make_response, url_for, g, request
+from flask import render_template, redirect, session, make_response, url_for, g, request, abort
 from gae_mini_profiler.templatetags import profiler_includes
-from google.appengine.api import taskqueue, users, urlfetch
+from google.appengine.api import taskqueue, urlfetch
 
 from sparkprs.models import Issue, KVS, User
 from sparkprs.github_api import raw_github_request, github_request, ISSUES_BASE, BASE_AUTH_URL
@@ -129,6 +127,8 @@ def build_response(template, max_age=60, **kwargs):
         # (href, id, label)
         ('/', 'index', 'Open PRs'),
     ]
+    if g.user and "admin" in g.user.roles:
+        navigation_bar.append(('/admin', 'admin', 'Admin'))
     default_context = {
         'profiler_includes': profiler_includes(),
         'navigation_bar': navigation_bar,
@@ -140,8 +140,63 @@ def build_response(template, max_age=60, **kwargs):
     return response
 
 
+@app.route("/trigger-jenkins/<int:number>", methods=['POST'])
+def test_pr(number):
+    """
+    Triggers a parametrized Jenkins build for testing Spark pull requests.
+    """
+    if not (g.user and g.user.has_capability("jenkins")):
+        return abort(403)
+    pr = Issue.get_or_create(number)
+    commit = pr.pr_json["head"]["sha"]
+    # The parameter names here were chosen to match the ones used by Jenkins' GitHub pull request
+    # builder plugin: https://wiki.jenkins-ci.org/display/JENKINS/Github+pull+request+builder+plugin
+    # In the Spark repo, the https://github.com/apache/spark/blob/master/dev/run-tests-jenkins
+    # script reads these variables when posting pull request feedback.
+    query = {
+        'token': app.config['JENKINS_PRB_TOKEN'],
+        'ghprbPullId': number,
+        'ghprbActualCommit': commit,
+        # This matches the Jenkins plugin's logic; see
+        # https://github.com/jenkinsci/ghprb-plugin/blob/master/src/main/java/org/jenkinsci/plugins/ghprb/GhprbTrigger.java#L146
+        #
+        # It looks like origin/pr/*/merge ref points to the last successful test merge commit that
+        # GitHub generates when it checks for mergeability.  This API technically isn't documented,
+        # but enough plugins seem to rely on it that it seems unlikely to change anytime soon
+        # (if it does, we can always upgrade our tests to perform the merge ourselves).
+        #
+        # See also: https://developer.github.com/changes/2013-04-25-deprecating-merge-commit-sha/
+        'sha1': ("origin/pr/%i/merge" % number) if pr.is_mergeable else commit,
+    }
+    trigger_url = "%sbuildWithParameters?%s" % (app.config["JENKINS_PRB_JOB_URL"],
+                                                urllib.urlencode(query))
+    logging.debug("Triggering Jenkins with url %s" % trigger_url)
+    response = urlfetch.fetch(trigger_url, method="POST")
+    if response.status_code not in (200, 201):
+        logging.error("Jenkins responded with status code %i" % response.status_code)
+        return response.content
+    else:
+        return redirect(app.config["JENKINS_PRB_JOB_URL"])
+
+
+@app.route("/admin/add-role", methods=['POST'])
+def add_role():
+    if not g.user or "admin" not in g.user.roles:
+        return abort(403)
+    user = User.query(User.github_login == request.form["username"]).get()
+    if user is None:
+        user = User(github_login=request.form["username"])
+    role = request.form["role"]
+    if role not in user.roles:
+        user.roles.append(role)
+        user.put()
+    return "Updated user %s; now has roles %s" % (user.github_login, user.roles)
+
+
 @app.route('/admin')
 def admin_panel():
+    if not g.user or "admin" not in g.user.roles:
+        return abort(403)
     return build_response('admin.html')
 
 

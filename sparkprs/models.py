@@ -36,6 +36,14 @@ class User(ndb.Model):
     github_user_json = ndb.JsonProperty()
     roles = ndb.StringProperty(repeated=True)
 
+    def has_capability(self, capability):
+        if "admin" in self.roles:
+            return True
+        elif capability == "jenkins":
+            return "jenkins-admin" in self.roles
+        else:
+            return False
+
 
 class Issue(ndb.Model):
     number = ndb.IntegerProperty(required=True)
