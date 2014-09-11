@@ -9,6 +9,8 @@ handlers:
   static_dir: gae_mini_profiler/static
 - url: /gae_mini_profiler/.*
   script: gae_mini_profiler.main.application
+- url: /static
+  static_dir: static
 - url: .*  # Route all requets to the WSGI application
   script: main.app
   secure: always

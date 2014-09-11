@@ -1,0 +1,25 @@
+.glyphicon {
+    margin-right: 2px;
+}
+
+.popover {
+    max-width: 600px;
+}
+
+.lines-added {
+    color: #55a532;
+}
+
+.lines-deleted {
+    color: #bd2c00;
+}
+
+.lgtm {
+    display: inline-block;
+    border: 3px solid #55a532;
+}
+
+.asked-to-close {
+    display: inline-block;
+    border: 3px solid #bd2c00;
+}

@@ -1,3 +1,14 @@
+{# dictionary in format outcome_name : (label, glyphicon_name) #}
+{% set jenkins_outcomes = {
+    "Pass": ("Passed", "ok"),
+    "Fail": ("Failed", "remove"),
+    "Timeout": ("Timed out", "time"),
+    "Running": ("Running", "arrow-right"),
+    "Verify": ("Admin needed", "comment"),
+    "Asked": ("Asked to test", "comment"),
+    "Unknown": ("Unknown", "question-sign"),
+} %}
+
 {% macro issues_table(issues, user) -%}
 <table class="table table-striped table-condensed sortable">
     <tr>
@@ -48,7 +59,7 @@
                                  height="16"
                                  width="16"
                                  alt="{{username}}"
-                                 class="comment-link"
+                                 class="markdown-popover"
                                  data-markdown="{{comment_data['body']}}"
                                  title='<a href="{{comment_data["url"]}}">Comment</a> from <a href="/users/{{username}}">{{username}}</a>'>
                         </span>
@@ -66,21 +77,8 @@
             {% endif %}
         </td>
         <td sorttable_customkey="{{issue.last_jenkins_outcome}}">
-            {% if issue.last_jenkins_outcome == "Pass" %}
-            <i class="glyphicon glyphicon-ok"></i> Passed
-            {% elif issue.last_jenkins_outcome == "Fail" %}
-            <i class="glyphicon glyphicon-remove"></i> Failed
-            {% elif issue.last_jenkins_outcome == "Timeout" %}
-            <i class="glyphicon glyphicon-time"></i> Timed out
-            {% elif issue.last_jenkins_outcome == "Running" %}
-            <i class="glyphicon glyphicon-arrow-right"></i> Running
-            {% elif issue.last_jenkins_outcome == "Verify" %}
-            <i class="glyphicon glyphicon-comment"></i> Admin needed
-            {% elif issue.last_jenkins_outcome == "Asked" %}
-            <i class="glyphicon glyphicon-comment"></i> Asked to test
-            {% else %}
-            <i class="glyphicon glyphicon-question-sign"></i> Unknown
-            {% endif %}
+            {% set (label, glyphicon_name) = jenkins_outcomes[issue.last_jenkins_outcome] %}
+            <i class="glyphicon glyphicon-{{glyphicon_name}}"></i> {{label}}
         </td>
         <td sorttable_customkey="{{issue.updated_at}}"><abbr class="timeago" title="{{issue.updated_at}}Z">{{issue.updated_at}}</abbr></td>
         {% if user and user.has_capability("jenkins") %}

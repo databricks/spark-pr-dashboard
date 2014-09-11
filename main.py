@@ -133,6 +133,7 @@ def build_response(template, max_age=60, **kwargs):
         'profiler_includes': profiler_includes(),
         'navigation_bar': navigation_bar,
         'user': g.user,
+        'APP_VERSION': VERSION,
     }
     rendered = render_template(template, **(dict(default_context.items() + kwargs.items())))
     response = make_response(rendered)

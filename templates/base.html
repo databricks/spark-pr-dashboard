@@ -3,31 +3,7 @@
     <title>{% block title %}Spark Pull Requests{% endblock %}</title>
     <link rel="stylesheet" type="text/css" href="//maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap.min.css" />
     <link rel="stylesheet" type="text/css" href="//cdnjs.cloudflare.com/ajax/libs/octicons/2.0.2/octicons.min.css">
-    <style>
-        .glyphicon {
-            margin-right: 2px;
-        }
-        .popover {
-            max-width: 600px;
-        }
-        .lines-added {
-            color: #55a532;
-        }
-        .lines-deleted {
-            color: #bd2c00;
-        }
-        .lgtm {
-            display: inline-block;
-            border: 3px solid #55a532;
-        }
-        .asked-to-close {
-            display: inline-block;
-            border: 3px solid #bd2c00;
-        }
-        .navbar-icon-group {
-            padding-right: 16px;
-        }
-    </style>
+    <link rel="stylesheet" type="text/css" href="/static/css/main.css?version={{APP_VERSION}}">
 </head>
 
 <body>
@@ -51,13 +27,12 @@
             </li>
             {% endfor %}
         </ul>
-        <div class="nav navbar-right navbar-icon-group">
+        <div class="pull-right">
             {% if g.user %}
-                <span class="navbar-text">
-                    Signed in as <a href="/users/{{user.github_login}}" class="navbar-link">{{user.github_login}}</a>
-                </span>
+            <p class="nav navbar-text">
+                Signed in as <a href="/users/{{user.github_login}}" class="navbar-link">{{user.github_login}}</a>
+            </p>
             {% endif %}
-
             <a href="https://github.com/databricks/spark-pr-dashboard" class="btn btn-success navbar-btn">
                 <span class="octicon octicon-mark-github"></span> Fork me on GitHub
             </a>
@@ -83,47 +58,7 @@
 <script type="text/javascript" src="//maxcdn.bootstrapcdn.com/bootstrap/3.2.0/js/bootstrap.min.js"></script>
 <script type="text/javascript" src="//cdn.jsdelivr.net/sorttable/2/sorttable.min.js"></script>
 <script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/marked/0.3.2/marked.min.js"></script>
-<script type="text/javascript">
-    jQuery(document).ready(function() {
-        jQuery("abbr.timeago").timeago();
-    });
-    $('.comment-link').popover({
-        trigger: "click",
-        placement: "left",
-        html: true,
-        content: function() {
-            return marked($(this).data("markdown"));
-        }
-    });
-    // From http://stackoverflow.com/a/15670200/590203
-    // Only allow one popover to be displayed at a time, and hide popovers
-    // when clicking outside of them:
-    $('html').on('mouseup', function(e) {
-        if(!$(e.target).closest('.popover').length) {
-            $('.popover').each(function(){
-                $(this.previousSibling).popover('hide');
-            });
-        }
-    });
-    function test_jenkins(number) {
-        return confirm("Are you sure you want to test PR " + number + " with Jenkins?");
-    }
-    </script>
-<script type="text/javascript">
-    // Copy pasta sauce: http://stackoverflow.com/a/12138756
-    // Give the various tabs anchor tags.
-    $(function(){
-      var hash = window.location.hash;
-      hash && $('ul.nav a[href="' + hash + '"]').tab('show');
-
-      $('.nav-tabs a').click(function (e) {
-        $(this).tab('show');
-        var scrollmem = $('body').scrollTop();
-        window.location.hash = this.hash;
-        $('html,body').scrollTop(scrollmem);
-      });
-    });
-    </script>
+<script type="text/javascript" src="/static/js/main.js?version={{APP_VERSION}}"></script>
 {{ profiler_includes | safe }}
 </body>
 </html>
