@@ -53,18 +53,22 @@
         </ul>
         <div class="nav navbar-right navbar-icon-group">
             {% if g.user %}
-                <span class="navbar-text">Signed in as <a href="/users/{{user.github_login}}" class="navbar-link">{{user.github_login}}</a></span>
-                <span class="navbar-brand" data-toggle="tooltip" data-placement="bottom" title="Sign out">
-                    <a href="/logout">
-                        <span class="octicon octicon-sign-out"></span>
-                    </a>
+                <span class="navbar-text">
+                    Signed in as <a href="/users/{{user.github_login}}" class="navbar-link">{{user.github_login}}</a>
                 </span>
+            {% endif %}
+
+            <a href="https://github.com/databricks/spark-pr-dashboard" class="btn btn-success navbar-btn">
+                <span class="octicon octicon-mark-github"></span> Fork me on GitHub
+            </a>
+            {% if g.user %}
+                <a href="/logout" class="btn btn-default navbar-btn">
+                    <span class="octicon octicon-sign-out"></span> Sign out
+                </a>
             {% else %}
-                <span class="navbar-brand" data-toggle="tooltip" data-placement="bottom" title="Sign in">
-                    <a href="/login">
-                        <span class="octicon octicon-sign-in"></span>
-                    </a>
-                </span>
+                <a href="/login" class="btn btn-default navbar-btn">
+                    <span class="octicon octicon-sign-in"></span> Sign in
+                </a>
             {% endif %}
         </div>
     </div><!-- /.container-fluid -->
@@ -101,9 +105,6 @@
             });
         }
     });
-    $('.navbar-brand').tooltip({
-        animation: false
-    })
     function test_jenkins(number) {
         return confirm("Are you sure you want to test PR " + number + " with Jenkins?");
     }
