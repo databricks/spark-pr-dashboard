@@ -40,9 +40,14 @@
 
         <!-- See http://jinja.pocoo.org/docs/dev/tricks/#highlighting-active-menu-items -->
         <ul class="nav navbar-nav">
-            {% for href, id, label in navigation_bar %}
+            {% for (href, id, label, badge_value) in navigation_bar %}
             <li{% if id == active_page %} class="active"{% endif%}>
-                <a href="{{ href|e }}">{{ label|e }}</a>
+                <a href="{{ href|e }}">
+                    {{ label|e }}
+                    {% if badge_value %}
+                        <span class="badge">{{badge_value}}</span>
+                    {% endif %}
+                </a>
             </li>
             {% endfor %}
         </ul>

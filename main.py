@@ -124,11 +124,11 @@ def update_issue(number):
 
 def build_response(template, max_age=60, **kwargs):
     navigation_bar = [
-        # (href, id, label)
-        ('/', 'index', 'Open PRs'),
+        # (href, id, label, badge_value)
+        ('/', 'index', 'Open PRs', int(Issue.query(Issue.state == "open").count())),
     ]
     if g.user and "admin" in g.user.roles:
-        navigation_bar.append(('/admin', 'admin', 'Admin'))
+        navigation_bar.append(('/admin', 'admin', 'Admin', None))
     default_context = {
         'profiler_includes': profiler_includes(),
         'navigation_bar': navigation_bar,
