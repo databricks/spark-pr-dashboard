@@ -140,7 +140,7 @@ def build_response(template, max_age=60, **kwargs):
     return response
 
 
-@app.route("/trigger-jenkins/<int:number>", methods=['POST'])
+@app.route("/trigger-jenkins/<int:number>", methods=['GET', 'POST'])
 def test_pr(number):
     """
     Triggers a parametrized Jenkins build for testing Spark pull requests.
