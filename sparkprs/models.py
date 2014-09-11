@@ -60,6 +60,7 @@ class Issue(ndb.Model):
     # Cached properties, while we migrate away from on-the-fly computed ones:
     cached_commenters = ndb.PickleProperty()
     cached_last_jenkins_outcome = ndb.StringProperty()
+    last_jenkins_comment = ndb.JsonProperty()
 
     ASKED_TO_CLOSE_REGEX = re.compile(r"""
         (mind\s+closing\s+(this|it))|
@@ -142,7 +143,9 @@ class Issue(ndb.Model):
     @property
     def last_jenkins_outcome(self):
         if self.cached_last_jenkins_outcome is None:
-            self.cached_last_jenkins_outcome = self._compute_last_jenkins_outcome()
+            (outcome, comment) = self._compute_last_jenkins_outcome()
+            self.cached_last_jenkins_outcome = outcome
+            self.last_jenkins_comment = comment
             self.put()
         return self.cached_last_jenkins_outcome
 
@@ -168,11 +171,14 @@ class Issue(ndb.Model):
 
     def _compute_last_jenkins_outcome(self):
         status = "Unknown"
+        jenkins_comment = None
         for comment in (self.comments_json or []):
             if contains_jenkins_command(comment['body']):
                 status = "Asked"
+                jenkins_comment = comment
             elif comment['user']['login'] in ("SparkQA", "AmplabJenkins"):
                 body = comment['body'].lower()
+                jenkins_comment = comment
                 if "pass" in body:
                     status = "Pass"
                 elif "fail" in body:
@@ -185,7 +191,7 @@ class Issue(ndb.Model):
                     status = "Timeout"
                 else:
                     status = "Unknown"  # So we display "Unknown" instead of an out-of-date status
-        return status
+        return (status, jenkins_comment)
 
     @classmethod
     def get_or_create(cls, number):
@@ -221,7 +227,8 @@ class Issue(ndb.Model):
             self.files_json = json.loads(files_response.content)
             self.files_etag = files_response.headers["ETag"]
 
-        self.cached_last_jenkins_outcome = self._compute_last_jenkins_outcome()
+        self.cached_last_jenkins_outcome = None
+        self.last_jenkins_outcome  # force recomputation of Jenkins outcome
         self.cached_commenters = self._compute_commenters()
 
         # Write our modifications back to the database

@@ -59,7 +59,7 @@
                                  height="16"
                                  width="16"
                                  alt="{{username}}"
-                                 class="markdown-popover"
+                                 class="markdown-popover commenter-icon"
                                  data-markdown="{{comment_data['body']}}"
                                  title='<a href="{{comment_data["url"]}}">Comment</a> from <a href="/users/{{username}}">{{username}}</a>'>
                         </span>
@@ -78,7 +78,18 @@
         </td>
         <td sorttable_customkey="{{issue.last_jenkins_outcome}}">
             {% set (label, glyphicon_name) = jenkins_outcomes[issue.last_jenkins_outcome] %}
-            <i class="glyphicon glyphicon-{{glyphicon_name}}"></i> {{label}}
+            {% if issue.last_jenkins_comment %}
+                <div class="markdown-popover"
+                     data-markdown="{{issue.last_jenkins_comment['body']}}"
+                     title='<a href="{{issue.last_jenkins_comment["html_url"]}}">Comment</a> from <a href="/users/{{issue.last_jenkins_comment["user"]["login"]}}">{{issue.last_jenkins_comment["user"]["login"]}}</a>'>
+                    <i class="glyphicon glyphicon-{{glyphicon_name}}"></i>
+                    <span class="jenkins-outcome-link">
+                        {{label}}
+                    </span>
+                </div>
+            {% else %}
+                <i class="glyphicon glyphicon-{{glyphicon_name}}"></i> {{label}}
+            {% endif %}
         </td>
         <td sorttable_customkey="{{issue.updated_at}}"><abbr class="timeago" title="{{issue.updated_at}}Z">{{issue.updated_at}}</abbr></td>
         {% if user and user.has_capability("jenkins") %}

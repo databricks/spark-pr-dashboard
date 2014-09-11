@@ -23,3 +23,14 @@
     display: inline-block;
     border: 3px solid #bd2c00;
 }
+
+/* To provide some visual feedback that the icons are clickable */
+.commenter-icon:hover {
+    opacity: 0.8;
+    border: 1px solid #428bca;
+}
+
+.jenkins-outcome-link:hover {
+    color: #005580;
+    text-decoration: underline;
+}
