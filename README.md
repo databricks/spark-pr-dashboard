@@ -16,6 +16,7 @@ This repository hosts the code for [spark-prs.appspot.com](http://spark-prs.apps
 4. Create a `settings.cfg` file (see `settings.cfg.template`)
 5. Run `dev_appserver.py .` and browse to [http://localhost:8080](http://localhost:8080) to view the application.
 
+Initially, the dashboard will be empty because the dev appserver doesn't run the cron job that updates issues. To trigger the job manually, browse to [http://localhost:8000/cron](http://localhost:8000/cron) and hit "Run now".
 
 ## License
 
