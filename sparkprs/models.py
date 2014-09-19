@@ -69,6 +69,7 @@ class Issue(ndb.Model):
 
     _components = [
         # (name, pr_title_regex, filename_regex)
+        ("All", ".", "."),
         ("Core", "core", "^core/"),
         ("Python", "python|pyspark", "python"),
         ("YARN", "yarn", "yarn"),
