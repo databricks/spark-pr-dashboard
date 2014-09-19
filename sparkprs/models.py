@@ -70,6 +70,7 @@ class Issue(ndb.Model):
     _components = [
         # (name, pr_title_regex, filename_regex)
         ("Core", "core", "^core/"),
+        ("Scheduler", "schedul", "scheduler"),
         ("Python", "python|pyspark", "python"),
         ("YARN", "yarn", "yarn"),
         ("Mesos", "mesos", "mesos"),
