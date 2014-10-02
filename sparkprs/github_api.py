@@ -1,5 +1,7 @@
 from google.appengine.api import urlfetch
+from link_header import parse as parse_link_header
 import logging
+import json
 
 
 BASE_URL = 'https://api.github.com/'
@@ -26,3 +28,34 @@ def raw_github_request(url, oauth_token=None, etag=None):
         return response
     else:
         raise Exception("Unexpected status code: %i\n%s" % (response.status_code, response.content))
+
+
+def paginated_github_request(url, oauth_token=None, etag=None):
+    """
+    Retrieve and decode JSON from GitHub endpoints that use pagination.
+    Automatically follows 'next' links.
+
+    :return: (Decoded JSON, ETag) pair
+    """
+    # Grab the first page
+    initial_response = raw_github_request(url, oauth_token, etag)
+    if initial_response is None:
+        return None
+    result = json.loads(initial_response.content)
+    etag = initial_response.headers["ETag"]
+
+    # Continue following 'next' links, appending the decoded responses to 'result'
+
+    def get_next_url(resp):
+        link_header = parse_link_header(resp.headers.get('Link', ''))
+        for link in link_header.links:
+            if link.rel == 'next':
+                return link.href
+
+    next_url = get_next_url(initial_response)
+    while next_url:
+        response = raw_github_request(next_url, oauth_token)
+        result.extend(json.loads(response.content))
+        next_url = get_next_url(response)
+
+    return result, etag

@@ -2,7 +2,7 @@ import google.appengine.ext.ndb as ndb
 from collections import defaultdict
 from dateutil.parser import parse as parse_datetime
 from dateutil import tz
-from github_api import raw_github_request, PULLS_BASE, ISSUES_BASE
+from github_api import raw_github_request, paginated_github_request, PULLS_BASE, ISSUES_BASE
 import json
 import logging
 import re
@@ -225,25 +225,22 @@ class Issue(ndb.Model):
         self.updated_at = updated_at
         self.state = self.pr_json['state']
 
-        # TODO: will miss comments if we exceed the pagination limit:
-        comments_response = raw_github_request(ISSUES_BASE + '/%i/comments' % self.number,
-                                               oauth_token=oauth_token, etag=self.comments_etag)
+        comments_response = paginated_github_request(ISSUES_BASE + '/%i/comments' % self.number,
+                                                     oauth_token=oauth_token,
+                                                     etag=self.comments_etag)
         if comments_response is not None:
-            self.comments_json = json.loads(comments_response.content)
-            self.comments_etag = comments_response.headers["ETag"]
+            self.comments_json, self.comments_etag = comments_response
 
-        pr_comments_response = raw_github_request(PULLS_BASE + '/%i/comments' % self.number,
-                                                  oauth_token=oauth_token,
-                                                  etag=self.pr_comments_etag)
+        pr_comments_response = paginated_github_request(PULLS_BASE + '/%i/comments' % self.number,
+                                                        oauth_token=oauth_token,
+                                                        etag=self.pr_comments_etag)
         if pr_comments_response is not None:
-            self.pr_comments_json = json.loads(pr_comments_response.content)
-            self.pr_comments_etag = pr_comments_response.headers["ETag"]
+            self.pr_comments_json, self.pr_comments_etag = pr_comments_response
 
-        files_response = raw_github_request(PULLS_BASE + "/%i/files" % self.number,
-                                            oauth_token=oauth_token, etag=self.files_etag)
+        files_response = paginated_github_request(PULLS_BASE + "/%i/files" % self.number,
+                                                  oauth_token=oauth_token, etag=self.files_etag)
         if files_response is not None:
-            self.files_json = json.loads(files_response.content)
-            self.files_etag = files_response.headers["ETag"]
+            self.files_json, self.files_etag = files_response
 
         self.cached_last_jenkins_outcome = None
         self.last_jenkins_outcome  # force recomputation of Jenkins outcome
