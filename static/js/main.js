@@ -7,7 +7,16 @@ $('.markdown-popover').popover({
     placement: "left",
     html: true,
     content: function() {
-        return marked($(this).data("markdown"));
+        var rendered_markdown = marked($(this).data("markdown"));
+        var diff_hunk = $(this).data("diff-hunk");
+        if (diff_hunk !== '') {
+            var div = $('<div></div>');
+            div.append($('<pre></pre>').text(diff_hunk));
+            div.append($(rendered_markdown));
+            return div;
+        } else {
+            return rendered_markdown;
+        }
     }
 });
 

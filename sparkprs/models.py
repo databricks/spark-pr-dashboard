@@ -53,6 +53,8 @@ class Issue(ndb.Model):
     title = ndb.StringProperty()
     comments_json = ndb.JsonProperty()
     comments_etag = ndb.StringProperty()
+    pr_comments_json = ndb.JsonProperty()
+    pr_comments_etag = ndb.StringProperty()
     files_json = ndb.JsonProperty()
     files_etag = ndb.StringProperty()
     pr_json = ndb.JsonProperty()
@@ -156,7 +158,9 @@ class Issue(ndb.Model):
     def _compute_commenters(self):
         res = defaultdict(dict)  # Indexed by user, since we only display each user once.
         excluded_users = set(("SparkQA", "AmplabJenkins"))
-        for comment in (self.comments_json or []):
+        all_comments = sorted((self.comments_json or []) + (self.pr_comments_json or []),
+                              key=lambda c: c['created_at'])
+        for comment in all_comments:
             if is_jenkins_command(comment['body']):
                 continue  # Skip comments that solely consist of Jenkins commands
             user = comment['user']['login']
@@ -166,6 +170,9 @@ class Issue(ndb.Model):
                 user_dict['avatar'] = comment['user']['avatar_url']
                 user_dict['date'] = comment['created_at'],
                 user_dict['body'] = comment['body']
+                # Display at most 10 lines of context for comments left on diffs:
+                user_dict['diff_hunk'] = '\n'.join(
+                    comment.get('diff_hunk', '').split('\n')[-10:])
                 user_dict['said_lgtm'] = (user_dict.get('said_lgtm') or
                                           re.search("lgtm", comment['body'], re.I) is not None)
                 user_dict['asked_to_close'] = \
@@ -224,6 +231,13 @@ class Issue(ndb.Model):
         if comments_response is not None:
             self.comments_json = json.loads(comments_response.content)
             self.comments_etag = comments_response.headers["ETag"]
+
+        pr_comments_response = raw_github_request(PULLS_BASE + '/%i/comments' % self.number,
+                                                  oauth_token=oauth_token,
+                                                  etag=self.pr_comments_etag)
+        if pr_comments_response is not None:
+            self.pr_comments_json = json.loads(pr_comments_response.content)
+            self.pr_comments_etag = pr_comments_response.headers["ETag"]
 
         files_response = raw_github_request(PULLS_BASE + "/%i/files" % self.number,
                                             oauth_token=oauth_token, etag=self.files_etag)
