@@ -4,26 +4,18 @@ from dateutil.parser import parse as parse_datetime
 from dateutil import tz
 from datetime import datetime
 import logging
-import os
 import urllib
 import urlparse
 
-from flask import Flask
 from flask import render_template, redirect, session, make_response, url_for, g, request, abort, \
     Response
 from gae_mini_profiler.templatetags import profiler_includes
 from google.appengine.api import taskqueue, urlfetch
 
+from sparkprs import app, VERSION
 from sparkprs.models import Issue, KVS, User
 from sparkprs.github_api import raw_github_request, github_request, ISSUES_BASE, BASE_AUTH_URL
 from link_header import parse as parse_link_header
-
-
-app = Flask(__name__)
-app.config.from_pyfile('settings.cfg')
-
-
-VERSION = os.environ['CURRENT_VERSION_ID']
 
 
 #  --------- Authentication and admin panel functionality -----------------------------------------#
