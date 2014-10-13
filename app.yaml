@@ -17,3 +17,7 @@ handlers:
 
 builtins:
 - appstats: on
+
+libraries:
+- name: ssl
+  version: latest

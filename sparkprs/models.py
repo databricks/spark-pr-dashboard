@@ -7,6 +7,7 @@ import json
 import logging
 import re
 from sparkprs.utils import parse_pr_title, is_jenkins_command, contains_jenkins_command
+from sparkprs.jira_api import link_issue_to_pr
 
 
 class KVS(ndb.Model):
@@ -245,6 +246,12 @@ class Issue(ndb.Model):
         self.cached_last_jenkins_outcome = None
         self.last_jenkins_outcome  # force recomputation of Jenkins outcome
         self.cached_commenters = self._compute_commenters()
+
+        for issue_number in self.parsed_title['jiras']:
+            try:
+                link_issue_to_pr("SPARK-%s" % issue_number, self)
+            except:
+                logging.exception("Exception when linking to JIRA issue SPARK-%s" % issue_number)
 
         # Write our modifications back to the database
         self.put()

@@ -7,3 +7,4 @@
 Flask==0.10.1
 python-dateutil==2.2
 LinkHeader==0.4.2
+jira-python==0.16
