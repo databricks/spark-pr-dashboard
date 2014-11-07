@@ -241,6 +241,7 @@ def main():
     grouped_issues = [(c[0], issues_by_component[c[0]]) for c in Issue._components]
     return build_response('index.html', grouped_issues=grouped_issues)
 
+
 @app.route('/all-open-prs')
 def all_open_prs():
     prs = Issue.query(Issue.state == "open").order(-Issue.updated_at).fetch()
