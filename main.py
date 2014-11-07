@@ -116,9 +116,11 @@ def update_issue(number):
 #  --------- User-facing pages --------------------------------------------------------------------#
 
 def build_response(template, max_age=60, **kwargs):
+    num_open_prs = int(Issue.query(Issue.state == "open").count())
     navigation_bar = [
         # (href, id, label, badge_value)
-        ('/', 'index', 'Open PRs', int(Issue.query(Issue.state == "open").count())),
+        ('/', 'index', 'Open PRs by Component', num_open_prs),
+        ('/all-open-prs', 'all-open-prs', 'All Open PRs', num_open_prs),
     ]
     if g.user and "admin" in g.user.roles:
         navigation_bar.append(('/admin', 'admin', 'Admin', None))
@@ -238,6 +240,11 @@ def main():
     # Display the groups in the order listed in Issues._components
     grouped_issues = [(c[0], issues_by_component[c[0]]) for c in Issue._components]
     return build_response('index.html', grouped_issues=grouped_issues)
+
+@app.route('/all-open-prs')
+def all_open_prs():
+    prs = Issue.query(Issue.state == "open").order(-Issue.updated_at).fetch()
+    return build_response('all_open_prs.html', prs=prs)
 
 
 @app.route("/users/<username>")
