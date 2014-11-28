@@ -60,8 +60,8 @@ define([
               prsByComponent[component] = [];
             }
             prsByComponent[component].push(pr);
-            prsByComponent[mainTab].push(pr);
           }
+          prsByComponent[mainTab].push(pr);
         }
 
         var result = _.map(prsByComponent, function(prs, component) {
@@ -94,7 +94,9 @@ define([
               onClick={this._filterPrsByComponent}/>);
           mainView = (
             <div className="container-fluid">
-              <PRTableView prs={this.state.currentPrs}/>
+              <PRTableView
+                prs={this.state.currentPrs}
+                showJenkinsButtons={this.props.showJenkinsButtons}/>
             </div>);
         }
 

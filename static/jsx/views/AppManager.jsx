@@ -3,10 +3,11 @@ define([
     'react',
     'react-mini-router',
     'jquery',
+    'underscore',
     'views/Dashboard',
     'views/UserDashboard'
   ],
-  function(React, Router, $, Dashboard, UserDashboard) {
+  function(React, Router, $, _, Dashboard, UserDashboard) {
     "use strict";
 
     var RouterMixin = Router.RouterMixin;
@@ -30,7 +31,7 @@ define([
         var link = "/users/" + this.props.username;
         return (
           <p className="nav navbar-text">
-          Signed in as
+            <span className="signed-in-as-text">Signed in as</span>
             <a href={link} className="navbar-link">{this.props.username}</a>
           </p>
         );
@@ -90,12 +91,28 @@ define([
         '/users/:username*': 'users'
       },
 
+      userIsAdmin: function() {
+        return this.state.user && _.contains(this.state.user.roles, "admin");
+      },
+
+      userCanUseJenkins: function() {
+        return this.state.user && _.contains(this.state.user.roles, "jenkins-admin");
+      },
+
       openPrs: function() {
-        return <Dashboard prs={this.state.prs}/>;
+        return (
+          <Dashboard
+            prs={this.state.prs}
+            showJenkinsButtons={this.userCanUseJenkins()}/>
+          );
       },
 
       users: function(username) {
-        return <UserDashboard prs={this.state.prs} username={username}/>;
+        return (
+          <UserDashboard
+            prs={this.state.prs}
+            username={username}
+            showJenkinsButtons={this.userCanUseJenkins()}/>);
       },
 
       getInitialState: function() {
@@ -112,6 +129,16 @@ define([
             _this.setState({prs: prs});
           }
         });
+
+        $.ajax({
+          url: '/user-info',
+          dataType: 'json',
+          success: function(user) {
+            if (user) {
+              _this.setState({user: user});
+            }
+          }
+        });
       },
 
       render: function() {
@@ -119,6 +146,14 @@ define([
           <span className="badge">
             {this.state.prs.length}
           </span>
+        );
+
+        var adminTab = (
+          <li>
+            <a href="/admin">
+            Admin
+            </a>
+          </li>
         );
 
         return (
@@ -134,6 +169,7 @@ define([
                       Open PRs by Component {countPrsBadge}
                     </a>
                   </li>
+                  {this.userIsAdmin() ? adminTab : ""}
                 </ul>
 
                 <GitHub user={this.state.user}/>

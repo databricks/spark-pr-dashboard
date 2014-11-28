@@ -76,3 +76,6 @@ span[data-toggle="popover"]:focus {
     margin-right: 5px;
 }
 
+.signed-in-as-text {
+    margin-right: 1ch;
+}

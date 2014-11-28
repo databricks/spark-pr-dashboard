@@ -34,5 +34,5 @@ module.exports = function (grunt) {
   grunt.loadNpmTasks('grunt-react');
 
   grunt.registerTask('default', ['react']);
-  grunt.registerTask('lint', ['jscs']);
+  grunt.registerTask('lint', ['react', 'jscs']);
 };

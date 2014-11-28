@@ -51,7 +51,9 @@ define([
           viewAuthored = (
             <div>
               <h3>PRs authored by {this.props.username}</h3>
-              <PRTableView prs={this.state.prsAuthored}/>
+              <PRTableView
+                prs={this.state.prsAuthored}
+                showJenkinsButtons={this.props.showJenkinsButtons}/>
             </div>
           );
         }
@@ -60,7 +62,9 @@ define([
           viewCommentedOn = (
             <div>
               <h3>PRs commented on by {this.props.username}</h3>
-              <PRTableView prs={this.state.prsCommentedOn}/>
+              <PRTableView
+                prs={this.state.prsCommentedOn}
+                showJenkinsButtons={this.props.showJenkinsButtons}/>
             </div>
           );
         }

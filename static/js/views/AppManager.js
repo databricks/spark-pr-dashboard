@@ -3,10 +3,11 @@ define([
     'react',
     'react-mini-router',
     'jquery',
+    'underscore',
     'views/Dashboard',
     'views/UserDashboard'
   ],
-  function(React, Router, $, Dashboard, UserDashboard) {
+  function(React, Router, $, _, Dashboard, UserDashboard) {
     "use strict";
 
     var RouterMixin = Router.RouterMixin;
@@ -30,7 +31,7 @@ define([
         var link = "/users/" + this.props.username;
         return (
           React.createElement("p", {className: "nav navbar-text"}, 
-          "Signed in as", 
+            React.createElement("span", {className: "signed-in-as-text"}, "Signed in as"), 
             React.createElement("a", {href: link, className: "navbar-link"}, this.props.username)
           )
         );
@@ -90,12 +91,28 @@ define([
         '/users/:username*': 'users'
       },
 
+      userIsAdmin: function() {
+        return this.state.user && _.contains(this.state.user.roles, "admin");
+      },
+
+      userCanUseJenkins: function() {
+        return this.state.user && _.contains(this.state.user.roles, "jenkins-admin");
+      },
+
       openPrs: function() {
-        return React.createElement(Dashboard, {prs: this.state.prs});
+        return (
+          React.createElement(Dashboard, {
+            prs: this.state.prs, 
+            showJenkinsButtons: this.userCanUseJenkins()})
+          );
       },
 
       users: function(username) {
-        return React.createElement(UserDashboard, {prs: this.state.prs, username: username});
+        return (
+          React.createElement(UserDashboard, {
+            prs: this.state.prs, 
+            username: username, 
+            showJenkinsButtons: this.userCanUseJenkins()}));
       },
 
       getInitialState: function() {
@@ -112,12 +129,30 @@ define([
             _this.setState({prs: prs});
           }
         });
+
+        $.ajax({
+          url: '/user-info',
+          dataType: 'json',
+          success: function(user) {
+            if (user) {
+              _this.setState({user: user});
+            }
+          }
+        });
       },
 
       render: function() {
         var countPrsBadge = (
           React.createElement("span", {className: "badge"}, 
             this.state.prs.length
+          )
+        );
+
+        var adminTab = (
+          React.createElement("li", null, 
+            React.createElement("a", {href: "/admin"}, 
+            "Admin"
+            )
           )
         );
 
@@ -133,7 +168,8 @@ define([
                     React.createElement("a", {href: "/open-prs"}, 
                       "Open PRs by Component ", countPrsBadge
                     )
-                  )
+                  ), 
+                  this.userIsAdmin() ? adminTab : ""
                 ), 
 
                 React.createElement(GitHub, {user: this.state.user})

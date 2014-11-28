@@ -51,7 +51,9 @@ define([
           viewAuthored = (
             React.createElement("div", null, 
               React.createElement("h3", null, "PRs authored by ", this.props.username), 
-              React.createElement(PRTableView, {prs: this.state.prsAuthored})
+              React.createElement(PRTableView, {
+                prs: this.state.prsAuthored, 
+                showJenkinsButtons: this.props.showJenkinsButtons})
             )
           );
         }
@@ -60,7 +62,9 @@ define([
           viewCommentedOn = (
             React.createElement("div", null, 
               React.createElement("h3", null, "PRs commented on by ", this.props.username), 
-              React.createElement(PRTableView, {prs: this.state.prsCommentedOn})
+              React.createElement(PRTableView, {
+                prs: this.state.prsCommentedOn, 
+                showJenkinsButtons: this.props.showJenkinsButtons})
             )
           );
         }

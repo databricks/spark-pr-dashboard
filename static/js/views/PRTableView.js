@@ -13,8 +13,6 @@ define([
 
     var navigate = Router.navigate;
     // jscs:enable
-    // TODO:
-    var hasJenkins = window.userinfo && _.contains(window.userinfo, "jenkins");
 
     var jenkinsOutcomes = {
       Pass: {label: "Passed", iconName: "ok"},
@@ -62,6 +60,26 @@ define([
             src: comment.avatar + "&s=16", alt: username, 'data-toggle': "popover", 
             'data-trigger': "focus", 'data-placement': "left", 'data-html': "true", 
             'data-title': title, 'data-content': content})
+        );
+      }
+    });
+
+    var TestWithJenkinsButton = React.createClass({displayName: 'TestWithJenkinsButton',
+      onClick: function() {
+        var prNum = this.props.pr.number;
+        var shouldTest = confirm("Are you sure you want to test PR " + prNum + " with Jenkins?");
+        if (shouldTest) {
+          window.open('/trigger-jenkins/' + prNum, '_blank');
+        }
+      },
+      render: function() {
+        return (
+          React.createElement("button", {
+            onClick: this.onClick, 
+            className: "btn btn-default btn-xs"}, 
+            React.createElement("span", {className: "glyphicon glyphicon-refresh"}), 
+            "Test with Jenkins"
+          )
         );
       }
     });
@@ -161,6 +179,10 @@ define([
 
         var updatedAt = $.timeago(pr.updated_at + "Z");
         var updatedCell = React.createElement("abbr", {title: pr.updated_at}, updatedAt);
+        var toolsCell =
+          React.createElement("td", null, 
+            React.createElement(TestWithJenkinsButton, {pr: pr})
+          );
         return (
           React.createElement("tr", null, 
             React.createElement("td", null, 
@@ -194,7 +216,8 @@ define([
             ), 
             React.createElement("td", null, 
               updatedCell
-            )
+            ), 
+            this.props.showJenkinsButtons ? toolsCell : ""
           )
         );
       }
@@ -248,20 +271,30 @@ define([
         this.doSort(sortCol, sortDirection, this.state.sortedPrs);
       },
       render: function() {
+        var _this = this;
         var tableRows = _.map(this.state.sortedPrs, function(pr) {
-          return React.createElement(PRTableRow, {key: pr.number, pr: pr})
+          return (
+            React.createElement(PRTableRow, {
+              key: pr.number, 
+              pr: pr, 
+              showJenkinsButtons: _this.props.showJenkinsButtons})
+          )
         });
         var outer = this;
-        var tableHeaders = _.map(
-          ["Number",
-            "JIRAs",
-            "Title",
-            "Author",
-            "Commenters",
-            "Changes",
-            "Merges",
-            "Jenkins",
-            "Updated"], function(colName) {
+        var columNames = [
+          "Number",
+          "JIRAs",
+          "Title",
+          "Author",
+          "Commenters",
+          "Changes",
+          "Merges",
+          "Jenkins",
+          "Updated"];
+        if (this.props.showJenkinsButtons) {
+          columNames.push("Tools");
+        }
+        var tableHeaders = _.map(columNames, function(colName) {
           var sortDirection = (colName === outer.state.sortCol ?
             outer.state.sortDirection :
             'unsorted');

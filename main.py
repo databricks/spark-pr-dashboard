@@ -78,7 +78,23 @@ def logout():
     return redirect(url_for('main'))
 
 
+@app.route('/user-info')
+def user_info():
+    """
+    Returns JSON describing the currently-signed-in user.
+    """
+    if g.user:
+        user_dict = {
+            'github_login': g.user.github_login,
+            'roles': g.user.roles,
+        }
+    else:
+        user_dict = None
+    return Response(json.dumps(user_dict, indent=2, separators=(',', ': ')),
+                    mimetype='application/json')
+
 #  --------- Task queue and cron jobs -------------------------------------------------------------#
+
 
 @app.route("/tasks/update-issues")
 def update_issues():
@@ -143,15 +159,6 @@ def search_open_prs():
         }
         json_dicts.append(d)
     response = Response(json.dumps(json_dicts, indent=2, separators=(',', ': ')),
-                        mimetype='application/json')
-    return response
-
-
-@app.route('/prs-meta')
-def prs_meta():
-    num_open_prs = int(Issue.query(Issue.state == "open").count())
-    prs_dict = {'openPrsCount': num_open_prs, 'user': g.user}
-    response = Response(json.dumps(prs_dict, indent=2, separators=(',', ': ')),
                         mimetype='application/json')
     return response
 
