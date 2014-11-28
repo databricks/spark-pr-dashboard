@@ -9,7 +9,6 @@ import urlparse
 
 from flask import render_template, redirect, session, make_response, url_for, g, request, abort, \
     Response
-from gae_mini_profiler.templatetags import profiler_includes
 from google.appengine.api import taskqueue, urlfetch
 
 from sparkprs import app, VERSION
@@ -115,28 +114,16 @@ def update_issue(number):
 
 #  --------- User-facing pages --------------------------------------------------------------------#
 
-def build_response(template, max_age=60, **kwargs):
-    num_open_prs = int(Issue.query(Issue.state == "open").count())
-    navigation_bar = [
-        # (href, id, label, badge_value)
-        ('/', 'index', 'Open PRs by Component', num_open_prs),
-        ('/all-open-prs', 'all-open-prs', 'All Open PRs', num_open_prs),
-    ]
-    if g.user and "admin" in g.user.roles:
-        navigation_bar.append(('/admin', 'admin', 'Admin', None))
-    default_context = {
-        'profiler_includes': profiler_includes(),
-        'navigation_bar': navigation_bar,
-        'user': g.user,
-        'APP_VERSION': VERSION,
-    }
-    rendered = render_template(template, **(dict(default_context.items() + kwargs.items())))
+def build_response(template, max_age=60):
+    rendered = render_template(template)
     response = make_response(rendered)
     response.cache_control.max_age = max_age
     return response
 
 
-def build_pr_json_response(prs, max_age=60):
+@app.route('/search-open-prs')
+def search_open_prs():
+    prs = Issue.query(Issue.state == "open").order(-Issue.updated_at).fetch()
     json_dicts = []
     for pr in prs:
         d = {
@@ -149,25 +136,24 @@ def build_pr_json_response(prs, max_age=60):
             'lines_added': pr.lines_added,
             'lines_deleted': pr.lines_deleted,
             'lines_changed': pr.lines_changed,
-            'files': (pr.files_json or {}),
-            "github_pr_json": (pr.pr_json or {}),
             'is_mergeable': pr.is_mergeable,
-            'commenters': pr.commenters,
+            'commenters': [{'username': u, 'data': d} for (u, d) in pr.commenters],
             'last_jenkins_outcome': pr.last_jenkins_outcome,
+            'last_jenkins_comment': pr.last_jenkins_comment
         }
         json_dicts.append(d)
     response = Response(json.dumps(json_dicts, indent=2, separators=(',', ': ')),
                         mimetype='application/json')
-    response.cache_control.max_age = max_age
     return response
 
 
-@app.route("/all-prs.json")
-def all_prs_json():
-    offset = int(request.args.get('offset'))
-    limit = 100
-    prs = Issue.query(Issue.number > offset).order(Issue.number).fetch(limit)
-    return build_pr_json_response(prs)
+@app.route('/prs-meta')
+def prs_meta():
+    num_open_prs = int(Issue.query(Issue.state == "open").count())
+    prs_dict = {'openPrsCount': num_open_prs, 'user': g.user}
+    response = Response(json.dumps(prs_dict, indent=2, separators=(',', ': ')),
+                        mimetype='application/json')
+    return response
 
 
 @app.route("/trigger-jenkins/<int:number>", methods=['GET', 'POST'])
@@ -231,27 +217,8 @@ def admin_panel():
 
 
 @app.route('/')
-def main():
-    issues = Issue.query(Issue.state == "open").order(-Issue.updated_at).fetch()
-    issues_by_component = defaultdict(list)
-    for issue in issues:
-        for component in issue.components:
-            issues_by_component[component].append(issue)
-    # Display the groups in the order listed in Issues._components
-    grouped_issues = [(c[0], issues_by_component[c[0]]) for c in Issue._components]
-    return build_response('index.html', grouped_issues=grouped_issues)
-
-
-@app.route('/all-open-prs')
-def all_open_prs():
-    prs = Issue.query(Issue.state == "open").order(-Issue.updated_at).fetch()
-    return build_response('all_open_prs.html', prs=prs)
-
-
-@app.route("/users/<username>")
-def users(username):
-    prs = Issue.query(Issue.state == "open").order(-Issue.updated_at).fetch()
-    prs_authored = [p for p in prs if p.user == username]
-    prs_commented_on = [p for p in prs if username in dict(p.commenters) and p.user != username]
-    return build_response('user.html', username=username, prs_authored=prs_authored,
-                          prs_commented_on=prs_commented_on)
+@app.route('/open-prs')
+@app.route('/users')
+@app.route('/users/<username>')
+def main(username=None):
+    return build_response('index.html')

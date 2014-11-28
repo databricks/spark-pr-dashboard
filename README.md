@@ -11,6 +11,7 @@ This repository hosts the code for [spark-prs.appspot.com](http://spark-prs.apps
 
    ```
    pip install -r requirements.txt -t lib
+   npm install .
    ```
 3. Run `git submodule init` and `git submodule update` to fetch Git submodules.
 4. Create a `settings.cfg` file (see `settings.cfg.template`)
