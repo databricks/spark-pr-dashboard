@@ -1,5 +1,4 @@
 import json
-from collections import defaultdict
 from dateutil.parser import parse as parse_datetime
 from dateutil import tz
 from datetime import datetime
@@ -11,7 +10,7 @@ from flask import render_template, redirect, session, make_response, url_for, g,
     Response
 from google.appengine.api import taskqueue, urlfetch
 
-from sparkprs import app, VERSION
+from sparkprs import app, cache
 from sparkprs.models import Issue, KVS, User
 from sparkprs.github_api import raw_github_request, github_request, ISSUES_BASE, BASE_AUTH_URL
 from link_header import parse as parse_link_header
@@ -138,10 +137,18 @@ def build_response(template, max_age=60):
 
 
 @app.route('/search-open-prs')
+@cache.cached(timeout=60)
 def search_open_prs():
     prs = Issue.query(Issue.state == "open").order(-Issue.updated_at).fetch()
     json_dicts = []
     for pr in prs:
+        last_jenkins_comment_dict = None
+        if pr.last_jenkins_comment:
+            last_jenkins_comment_dict = {
+                'body': pr.last_jenkins_comment['body'],
+                'user': {'login': pr.last_jenkins_comment['user']['login']},
+                'html_url': pr.last_jenkins_comment['html_url'],
+            }
         d = {
             'parsed_title': pr.parsed_title,
             'number': pr.number,
@@ -155,11 +162,10 @@ def search_open_prs():
             'is_mergeable': pr.is_mergeable,
             'commenters': [{'username': u, 'data': d} for (u, d) in pr.commenters],
             'last_jenkins_outcome': pr.last_jenkins_outcome,
-            'last_jenkins_comment': pr.last_jenkins_comment
+            'last_jenkins_comment': last_jenkins_comment_dict,
         }
         json_dicts.append(d)
-    response = Response(json.dumps(json_dicts, indent=2, separators=(',', ': ')),
-                        mimetype='application/json')
+    response = Response(json.dumps(json_dicts), mimetype='application/json')
     return response
 
 

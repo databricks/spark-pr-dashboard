@@ -79,3 +79,7 @@ span[data-toggle="popover"]:focus {
 .signed-in-as-text {
     margin-right: 1ch;
 }
+
+.loading-icon {
+    font-size: 36px;
+}

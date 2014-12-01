@@ -2,3 +2,6 @@ cron:
 - description: update issues
   url: /tasks/update-issues
   schedule: every 1 minutes
+- description: cache warming
+  url: /search-open-prs
+  schedule: every 1 minutes

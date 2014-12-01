@@ -98,6 +98,15 @@ define([
                 prs={this.state.currentPrs}
                 showJenkinsButtons={this.props.showJenkinsButtons}/>
             </div>);
+        } else {
+          mainView = (
+            <div className="container-fluid">
+              <div className="jumbotron text-center loading-icon">
+                <span className="glyphicon glyphicon-refresh"></span>
+                <h2>Loading PRs</h2>
+              </div>
+            </div>
+          )
         }
 
         return (

@@ -98,6 +98,15 @@ define([
                 prs: this.state.currentPrs, 
                 showJenkinsButtons: this.props.showJenkinsButtons})
             ));
+        } else {
+          mainView = (
+            React.createElement("div", {className: "container-fluid"}, 
+              React.createElement("div", {className: "jumbotron text-center loading-icon"}, 
+                React.createElement("span", {className: "glyphicon glyphicon-refresh"}), 
+                React.createElement("h2", null, "Loading PRs")
+              )
+            )
+          )
         }
 
         return (
