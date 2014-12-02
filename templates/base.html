@@ -8,57 +8,12 @@
 
 <body>
 
-<nav class="navbar navbar-default" role="navigation">
-    <div class="container-fluid">
-        <div class="navbar-header">
-            <a class="navbar-brand" href="/">Spark Pull Requests</a>
-        </div>
+{% block content %}
+{% endblock %}
 
-        <!-- See http://jinja.pocoo.org/docs/dev/tricks/#highlighting-active-menu-items -->
-        <ul class="nav navbar-nav">
-            {% for (href, id, label, badge_value) in navigation_bar %}
-            <li{% if id == active_page %} class="active"{% endif%}>
-                <a href="{{ href|e }}">
-                    {{ label|e }}
-                    {% if badge_value %}
-                        <span class="badge">{{badge_value}}</span>
-                    {% endif %}
-                </a>
-            </li>
-            {% endfor %}
-        </ul>
-        <div class="pull-right">
-            {% if g.user %}
-            <p class="nav navbar-text">
-                Signed in as <a href="/users/{{user.github_login}}" class="navbar-link">{{user.github_login}}</a>
-            </p>
-            {% endif %}
-            <a href="https://github.com/databricks/spark-pr-dashboard" class="btn btn-success navbar-btn">
-                <span class="octicon octicon-mark-github"></span> Fork me on GitHub
-            </a>
-            {% if g.user %}
-                <a href="/logout" class="btn btn-default navbar-btn">
-                    <span class="octicon octicon-sign-out"></span> Sign out
-                </a>
-            {% else %}
-                <a href="/login" class="btn btn-default navbar-btn">
-                    <span class="octicon octicon-sign-in"></span> Sign in
-                </a>
-            {% endif %}
-        </div>
-    </div><!-- /.container-fluid -->
-</nav>
-
-<div class="container-fluid">
-    {% block content %}
-    {% endblock %}
-</div>
-<script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
-<script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/jquery-timeago/1.4.0/jquery.timeago.min.js"></script>
-<script type="text/javascript" src="//maxcdn.bootstrapcdn.com/bootstrap/3.2.0/js/bootstrap.min.js"></script>
-<script type="text/javascript" src="//cdn.jsdelivr.net/sorttable/2/sorttable.min.js"></script>
-<script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/marked/0.3.2/marked.min.js"></script>
+<script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/require.js/2.1.14/require.min.js"></script>
 <script type="text/javascript" src="/static/js/main.js?version={{APP_VERSION}}"></script>
-{{ profiler_includes | safe }}
+{% block extrajs %}
+{% endblock %}
 </body>
 </html>

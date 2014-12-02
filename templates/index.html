@@ -1,25 +1,7 @@
 {% extends "base.html" %}
-{% set active_page = "index" %}
-{% import "macros.html" as macros %}
-
 
 {% block content %}
-<!-- Navigation tabs -->
-<ul class="nav nav-tabs" role="tablist">
-    {% for (component, issues) in grouped_issues %}
-    <li class="{% if loop.first %}active{% endif %}">
-        <a href="#{{component | replace(' ', '')}}" role="tag" data-toggle="tab">{{component}} <span class="badge">{{issues | count}}</span></a>
-    </li>
-    {% endfor %}
-</ul>
 
-<!-- Tab panes -->
-<div class="tab-content">
-    {% for (component, issues) in grouped_issues %}
-    <div class="tab-pane {% if loop.first %}active{% endif %}"
-         id="{{component | replace(' ', '')}}">
-        {{ macros.issues_table(issues, user) }}
-    </div>
-    {% endfor %}
-</div>
+<div id="app-manager"></div>
+
 {% endblock %}

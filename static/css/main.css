@@ -8,20 +8,33 @@
 
 .lines-added {
     color: #55a532;
+    margin-right: 3px;
 }
 
 .lines-deleted {
     color: #bd2c00;
 }
 
+.commenter {
+    width: 16px;
+    height: 16px;
+
+    float: left;
+    margin: 4px;
+
+    cursor: pointer;
+}
+
+[class="commenter"] {
+    margin-right: 0;
+}
+
 .lgtm {
-    display: inline-block;
-    border: 3px solid #55a532;
+    outline: 3px solid #55a532;
 }
 
 .asked-to-close {
-    display: inline-block;
-    border: 3px solid #bd2c00;
+    outline: 3px solid #bd2c00;
 }
 
 /* To provide some visual feedback that the icons are clickable */
@@ -33,4 +46,40 @@
 .jenkins-outcome-link:hover {
     color: #005580;
     text-decoration: underline;
+    cursor: pointer;
+}
+
+/* Prevent selecting of span tag when popover is toggled by click */
+span[data-toggle="popover"]:focus {
+    outline: -webkit-focus-ring-color auto 0;
+}
+
+.sub-nav {
+    margin-top: -20px;
+    min-height: 25px;
+    color: #555;
+    background-color: #e7e7e7;
+    border: none;
+}
+
+.subnav-active {
+    color: #313131;
+    background-color: #adadad;
+}
+
+.sub-nav li a {
+    padding-top: 5px;
+    padding-bottom: 5px;
+}
+
+.btn, .octicon, .glyphicon {
+    margin-right: 5px;
+}
+
+.signed-in-as-text {
+    margin-right: 1ch;
+}
+
+.loading-icon {
+    font-size: 36px;
 }

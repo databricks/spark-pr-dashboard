@@ -6,3 +6,6 @@ install:
 script:
   - pep8
   - python -m doctest sparkprs/utils.py
+  - npm install .
+  - npm install -g grunt-cli
+  - grunt lint
