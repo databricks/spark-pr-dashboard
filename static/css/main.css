@@ -70,14 +70,11 @@ span[data-toggle="popover"]:focus {
 .sub-nav li a {
     padding-top: 5px;
     padding-bottom: 5px;
+    cursor: pointer;
 }
 
-.btn, .octicon, .glyphicon {
+.btn, .octicon, .glyphicon, .jira-link, .signed-in-as-text {
     margin-right: 5px;
-}
-
-.signed-in-as-text {
-    margin-right: 1ch;
 }
 
 .loading-icon {

@@ -28,7 +28,7 @@ define([
       render: function() {
         var link = "http://issues.apache.org/jira/browse/SPARK-" + this.props.number;
         return (
-          <a href={link} target="_blank">
+          <a className="jira-link" href={link} target="_blank">
             {this.props.number}
           </a>
         );
@@ -307,7 +307,7 @@ define([
               sortDirection={sortDirection}/>);
         });
         return (
-          <table className="table table-condensed">
+          <table className="table table-condensed table-hover">
             <tbody>
               <tr>{tableHeaders}</tr>
               {tableRows}

@@ -28,7 +28,7 @@ define([
       render: function() {
         var link = "http://issues.apache.org/jira/browse/SPARK-" + this.props.number;
         return (
-          React.createElement("a", {href: link, target: "_blank"}, 
+          React.createElement("a", {className: "jira-link", href: link, target: "_blank"}, 
             this.props.number
           )
         );
@@ -307,7 +307,7 @@ define([
               sortDirection: sortDirection}));
         });
         return (
-          React.createElement("table", {className: "table table-condensed"}, 
+          React.createElement("table", {className: "table table-condensed table-hover"}, 
             React.createElement("tbody", null, 
               React.createElement("tr", null, tableHeaders), 
               tableRows
