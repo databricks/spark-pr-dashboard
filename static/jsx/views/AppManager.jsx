@@ -4,9 +4,10 @@ define([
     'jquery',
     'underscore',
     'views/Dashboard',
+    'views/UsersPage',
     'views/UserDashboard'
   ],
-  function(React, Router, $, _, Dashboard, UserDashboard) {
+  function(React, Router, $, _, Dashboard, UsersPage, UserDashboard) {
     "use strict";
 
     var RouterMixin = Router.RouterMixin;
@@ -85,7 +86,8 @@ define([
       routes: {
         '/': 'openPrs',
         '/open-prs': 'openPrs',
-        '/users/:username*': 'users'
+        '/users/': 'users',
+        '/users/:username*': 'userDashboard'
       },
 
       userIsAdmin: function() {
@@ -104,7 +106,11 @@ define([
           );
       },
 
-      users: function(username) {
+      users: function() {
+        return (<UsersPage prs={this.state.prs}/>);
+      },
+
+      userDashboard: function(username) {
         return (
           <UserDashboard
             prs={this.state.prs}
@@ -139,6 +145,8 @@ define([
       },
 
       render: function() {
+        var pathname = window.location.pathname;
+
         var countPrsBadge = (
           <span className="badge">
             {this.state.prs.length}
@@ -146,7 +154,7 @@ define([
         );
 
         var adminTab = (
-          <li>
+          <li className={pathname === '/admin' ? "active" : ""}>
             <a href="/admin">
             Admin
             </a>
@@ -161,9 +169,14 @@ define([
                 <NavigationHeader/>
 
                 <ul className="nav navbar-nav">
-                  <li className="active">
+                  <li className={(pathname === '/open-prs' || pathname === '/') ? "active" : ""}>
                     <a href="/open-prs">
-                      Open PRs by Component {countPrsBadge}
+                      Open PRs {countPrsBadge}
+                    </a>
+                  </li>
+                  <li className={pathname.indexOf('/users') === 0 ? "active" : ""}>
+                    <a href="/users">
+                    Users
                     </a>
                   </li>
                   {this.userIsAdmin() ? adminTab : ""}

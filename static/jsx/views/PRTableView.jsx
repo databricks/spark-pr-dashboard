@@ -4,10 +4,11 @@ define([
     'jquery',
     'underscore',
     'marked',
+    'views/TableView',
     'bootstrap',
     'jquery-timeago'
   ],
-  function(React, Router, $, _, marked) {
+  function(React, Router, $, _, marked, TableView) {
     "use strict";
 
     var jenkinsOutcomes = {
@@ -76,40 +77,6 @@ define([
             <span className="glyphicon glyphicon-refresh"></span>
             Test with Jenkins
           </button>
-        );
-      }
-    });
-
-    var PRTableColumnHeader = React.createClass({
-      propTypes: {
-        name: React.PropTypes.string.isRequired,
-        sortable: React.PropTypes.bool.isRequired,
-        onSort: React.PropTypes.func.isRequired,
-        sortDirection: React.PropTypes.oneOf(['asc', 'desc', 'unsorted'])
-      },
-      getDefaultProps: function() {
-        return {
-          sortable: true,
-          sortDirection: 'unsorted'
-        };
-      },
-      sortDirectionIndicator: function() {
-        if (this.props.sortDirection === 'asc') {
-          return (<span>&nbsp;▾</span>);
-        } else if (this.props.sortDirection === 'desc') {
-          return (<span>&nbsp;▴</span>);
-        } else {
-          return '';
-        }
-      },
-      onSort: function() {
-        this.props.onSort(this.props.name);
-      },
-      render: function() {
-        return (
-          <th onClick={this.onSort}>
-            {this.props.name}{this.sortDirectionIndicator()}
-          </th>
         );
       }
     });
@@ -223,60 +190,20 @@ define([
       propTypes: {
         prs: React.PropTypes.array.isRequired
       },
-      getInitialState: function() {
-        return {sortCol: '', sortDirection: 'unsorted'};
+
+      sortFunctions: {
+        'Number': function(row) { return row.props.pr.number; },
+        'JIRAs': function(row) { return row.props.pr.parsed_title.jiras; },
+        'Title': function(row) { return row.props.pr.parsed_title.title.toLowerCase(); },
+        'Author': function(row) { return row.props.pr.user.toLowerCase(); },
+        'Commenters': function(row) { return row.props.pr.commenters.length; },
+        'Changes': function(row) { return row.props.pr.lines_changed; },
+        'Merges': function(row) { return row.props.pr.is_mergeable; },
+        'Jenkins': function(row) { return row.props.pr.last_jenkins_outcome; },
+        'Updated': function(row) { return row.props.pr.updated_at; }
       },
-      componentWillMount: function() {
-        this.doSort(this.state.sortCol, this.state.sortDirection, this.props.prs);
-      },
-      componentWillReceiveProps: function(newProps) {
-        this.doSort(this.state.sortCol, this.state.sortDirection, newProps.prs);
-      },
-      sortFunctions:  {
-        'Number': function(pr) { return pr.number; },
-        'JIRAs': function(pr) { return pr.parsed_title.jiras; },
-        'Title': function(pr) { return pr.parsed_title.metadata + pr.parsed_title.title; },
-        'Author': function(pr) { return pr.user.toLowerCase(); },
-        'Commenters': function(pr) { return pr.commenters.length; },
-        'Changes': function(pr) { return pr.lines_changed; },
-        'Merges': function(pr) { return pr.is_mergeable; },
-        'Jenkins': function(pr) { return pr.last_jenkins_outcome; },
-        'Updated': function(pr) { return pr.updated_at; }
-      },
-      doSort: function(sortCol, sortDirection, sortedPrs) {
-        // Sort the PRs in this table and update its state
-        var newSortedPrs = _.sortBy(sortedPrs, this.sortFunctions[sortCol]);
-        if (sortDirection === 'desc') {
-          newSortedPrs.reverse();
-        }
-        this.setState({sortCol: sortCol, sortDirection: sortDirection, sortedPrs: newSortedPrs});
-      },
-      onSort: function(sortCol) {
-        // Callback when a user clicks on a column header to perform a sort.
-        // Handles the logic of toggling sort directions
-        var sortDirection;
-        if (sortCol === this.state.sortCol) {
-          if (this.state.sortDirection === 'unsorted' || this.state.sortDirection === 'asc') {
-            sortDirection = 'desc';
-          } else if (this.state.sortDirection === 'desc') {
-            sortDirection = 'asc';
-          }
-        } else {
-          sortDirection = 'desc';
-        }
-        this.doSort(sortCol, sortDirection, this.state.sortedPrs);
-      },
-      render: function() {
-        var _this = this;
-        var tableRows = _.map(this.state.sortedPrs, function(pr) {
-          return (
-            <PRTableRow
-              key={pr.number}
-              pr={pr}
-              showJenkinsButtons={_this.props.showJenkinsButtons}/>
-          );
-        });
-        var outer = this;
+
+      columnNames: function() {
         var columNames = [
           "Number",
           "JIRAs",
@@ -286,29 +213,30 @@ define([
           "Changes",
           "Merges",
           "Jenkins",
-          "Updated"];
+          "Updated"
+        ];
         if (this.props.showJenkinsButtons) {
           columNames.push("Tools");
         }
-        var tableHeaders = _.map(columNames, function(colName) {
-          var sortDirection = (colName === outer.state.sortCol ?
-            outer.state.sortDirection :
-            'unsorted');
+        return columNames;
+      },
 
+      render: function() {
+        var _this = this;
+        var tableRows = _.map(this.props.prs, function(pr) {
           return (
-            <PRTableColumnHeader
-              key={colName}
-              name={colName}
-              onSort={outer.onSort}
-              sortDirection={sortDirection}/>);
+            <PRTableRow
+              key={pr.number}
+              pr={pr}
+              showJenkinsButtons={_this.props.showJenkinsButtons}/>
+          );
         });
+
         return (
-          <table className="table table-condensed table-hover">
-            <tbody>
-              <tr>{tableHeaders}</tr>
-              {tableRows}
-            </tbody>
-          </table>
+          <TableView
+            rows={tableRows}
+            columnNames={this.columnNames()}
+            sortFunctions={this.sortFunctions}/>
         );
       }
     });

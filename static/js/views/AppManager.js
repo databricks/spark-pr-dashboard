@@ -4,9 +4,10 @@ define([
     'jquery',
     'underscore',
     'views/Dashboard',
+    'views/UsersPage',
     'views/UserDashboard'
   ],
-  function(React, Router, $, _, Dashboard, UserDashboard) {
+  function(React, Router, $, _, Dashboard, UsersPage, UserDashboard) {
     "use strict";
 
     var RouterMixin = Router.RouterMixin;
@@ -85,7 +86,8 @@ define([
       routes: {
         '/': 'openPrs',
         '/open-prs': 'openPrs',
-        '/users/:username*': 'users'
+        '/users/': 'users',
+        '/users/:username*': 'userDashboard'
       },
 
       userIsAdmin: function() {
@@ -104,7 +106,11 @@ define([
           );
       },
 
-      users: function(username) {
+      users: function() {
+        return (React.createElement(UsersPage, {prs: this.state.prs}));
+      },
+
+      userDashboard: function(username) {
         return (
           React.createElement(UserDashboard, {
             prs: this.state.prs, 
@@ -139,6 +145,8 @@ define([
       },
 
       render: function() {
+        var pathname = window.location.pathname;
+
         var countPrsBadge = (
           React.createElement("span", {className: "badge"}, 
             this.state.prs.length
@@ -146,7 +154,7 @@ define([
         );
 
         var adminTab = (
-          React.createElement("li", null, 
+          React.createElement("li", {className: pathname === '/admin' ? "active" : ""}, 
             React.createElement("a", {href: "/admin"}, 
             "Admin"
             )
@@ -161,9 +169,14 @@ define([
                 React.createElement(NavigationHeader, null), 
 
                 React.createElement("ul", {className: "nav navbar-nav"}, 
-                  React.createElement("li", {className: "active"}, 
+                  React.createElement("li", {className: (pathname === '/open-prs' || pathname === '/') ? "active" : ""}, 
                     React.createElement("a", {href: "/open-prs"}, 
-                      "Open PRs by Component ", countPrsBadge
+                      "Open PRs ", countPrsBadge
+                    )
+                  ), 
+                  React.createElement("li", {className: pathname.indexOf('/users') === 0 ? "active" : ""}, 
+                    React.createElement("a", {href: "/users"}, 
+                    "Users"
                     )
                   ), 
                   this.userIsAdmin() ? adminTab : ""
