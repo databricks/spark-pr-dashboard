@@ -1,4 +1,3 @@
-// jscs:disable
 define([
     'react',
     'jquery',
@@ -10,7 +9,6 @@ define([
   function(React, $, _, SubNavigation, PRTableView, UrlMixin) {
     "use strict";
 
-    // jscs:enable
     var Dashboard = React.createClass({
       mixins: [UrlMixin],
       getInitialState: function() {
@@ -38,7 +36,7 @@ define([
             prs = this.state.prs;
 
         for (var i = 0; i < prs.length; i++) {
-          if (prs[i].component == component) {
+          if (prs[i].component === component) {
             neededPrs = prs[i].prs;
             break;
           }
@@ -65,7 +63,7 @@ define([
         }
 
         var result = _.map(prsByComponent, function(prs, component) {
-          return {component: component, prs: prs, count: prs.length}
+          return {component: component, prs: prs, count: prs.length};
         });
 
         var tab = this._checkTabAvailability(prsByComponent);
@@ -106,7 +104,7 @@ define([
                 <h2>Loading PRs</h2>
               </div>
             </div>
-          )
+          );
         }
 
         return (

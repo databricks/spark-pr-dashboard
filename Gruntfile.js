@@ -1,6 +1,6 @@
-module.exports = function (grunt) {
+module.exports = function(grunt) {
+  "use strict";
 
-  // Project configuration.
   grunt.initConfig({
     pkg: grunt.file.readJSON('package.json'),
     react: {
@@ -17,22 +17,36 @@ module.exports = function (grunt) {
       }
     },
 
+    jshint: {
+      src: ["Gruntfile.js", "static/js/*.js", "static/jsx/mixins/*.jsx", "static/jsx/views/*.jsx"],
+      options: {
+        jshintrc: true
+      }
+    },
+
     jscs: {
-      src: ["static/js/*.js", "static/js/mixins/*.js", "static/js/views/*.js"]
+      src: ["Gruntfile.js", "static/js/*.js", "static/jsx/mixins/*.jsx", "static/jsx/views/*.jsx"],
+      options: {
+        config: ".jscs.json"
+      }
     },
 
     watch: {
       react: {
-        files: 'static/jsx/**/*.jsx',
-        tasks: ['react']
+				files: ["Gruntfile.js", "static/js/*.js", "static/jsx/mixins/*.jsx", "static/jsx/views/*.jsx"],
+        tasks: ['default']
       }
     }
   });
 
-  grunt.loadNpmTasks("grunt-jscs");
+  // Code quality tool for jsx and js (safe to replace JSHint)
+  grunt.loadNpmTasks("grunt-jsxhint");
+  // Use the JSX code style checker, since it is aware of both .js and jsx files
+  grunt.loadNpmTasks("grunt-jsxcs");
+
   grunt.loadNpmTasks('grunt-contrib-watch');
   grunt.loadNpmTasks('grunt-react');
 
-  grunt.registerTask('default', ['react']);
-  grunt.registerTask('lint', ['react', 'jscs']);
+  grunt.registerTask("default", ["react", "lint"]);
+  grunt.registerTask("lint", ["jscs", "jshint"]);
 };

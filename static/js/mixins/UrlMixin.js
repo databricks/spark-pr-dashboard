@@ -1,11 +1,9 @@
-// jscs:disable
 define([
     'underscore'
   ],
   function(_) {
     "use strict";
 
-    // jscs:enable
     var UrlMixin = {
       getAnchor: function(component) {
         //remove whitespaces and convert to lower case

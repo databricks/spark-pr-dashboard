@@ -1,4 +1,3 @@
-// jscs:disable
 require.config({
   baseUrl: "/static/js/",
   paths: {
@@ -23,4 +22,3 @@ require.config({
 });
 
 require(["app"], function(App) {});
-// jscs:enable

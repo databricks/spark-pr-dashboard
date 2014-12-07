@@ -1,4 +1,3 @@
-// jscs:disable
 define([
     'react',
     'react-mini-router',
@@ -11,9 +10,7 @@ define([
     "use strict";
 
     var RouterMixin = Router.RouterMixin;
-    var navigate = Router.navigate;
 
-    // jscs:enable
     var NavigationHeader = React.createClass({
       render: function() {
         return (

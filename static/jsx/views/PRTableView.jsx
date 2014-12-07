@@ -1,4 +1,3 @@
-// jscs:disable
 define([
     'react',
     'react-mini-router',
@@ -10,9 +9,6 @@ define([
   ],
   function(React, Router, $, _, marked) {
     "use strict";
-
-    var navigate = Router.navigate;
-    // jscs:enable
 
     var jenkinsOutcomes = {
       Pass: {label: "Passed", iconName: "ok"},
@@ -99,9 +95,9 @@ define([
       },
       sortDirectionIndicator: function() {
         if (this.props.sortDirection === 'asc') {
-          return <span>&nbsp;▾</span>;
+          return (<span>&nbsp;▾</span>);
         } else if (this.props.sortDirection === 'desc') {
-          return <span>&nbsp;▴</span>;
+          return (<span>&nbsp;▴</span>);
         } else {
           return '';
         }
@@ -120,7 +116,7 @@ define([
 
     var PRTableRow = React.createClass({
       componentDidMount: function() {
-        if (this.refs.jenkinsPopover != undefined) {
+        if (this.refs.jenkinsPopover !== undefined) {
           $(this.refs.jenkinsPopover.getDOMNode()).popover();
         }
       },
@@ -128,7 +124,7 @@ define([
       render: function() {
         var pr = this.props.pr;
         var jiraLinks = _.map(pr.parsed_title.jiras, function(number) {
-          return <JIRALink key={number} number={number}/>;
+          return (<JIRALink key={number} number={number}/>);
         });
 
         var commenters = _.map(pr.commenters, function(comment) {
@@ -228,7 +224,7 @@ define([
         prs: React.PropTypes.array.isRequired
       },
       getInitialState: function() {
-        return {sortCol: '', sortDirection: 'unsorted'}
+        return {sortCol: '', sortDirection: 'unsorted'};
       },
       componentWillMount: function() {
         this.doSort(this.state.sortCol, this.state.sortDirection, this.props.prs);
@@ -266,7 +262,7 @@ define([
             sortDirection = 'asc';
           }
         } else {
-          sortDirection = 'desc'
+          sortDirection = 'desc';
         }
         this.doSort(sortCol, sortDirection, this.state.sortedPrs);
       },
@@ -278,7 +274,7 @@ define([
               key={pr.number}
               pr={pr}
               showJenkinsButtons={_this.props.showJenkinsButtons}/>
-          )
+          );
         });
         var outer = this;
         var columNames = [

@@ -87,6 +87,8 @@
 
   "disallowMixedSpacesAndTabs": true,
 
+  "disallowTrailingWhitespace": true,
+
   "disallowKeywordsOnNewLine": ["else"],
 
   "requireLineFeedAtFileEnd": true,

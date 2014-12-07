@@ -1,4 +1,3 @@
-// jscs:disable
 define([
     'react',
     'jquery',
@@ -8,7 +7,6 @@ define([
   function(React, $, _, PRTableView) {
     "use strict";
 
-    // jscs:enable
     var UserDashboard = React.createClass({
       getInitialState: function() {
         return {prsAuthored: [], prsCommentedOn: []};

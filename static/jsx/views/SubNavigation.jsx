@@ -1,4 +1,3 @@
-// jscs:disable
 define([
     'react',
     'mixins/UrlMixin'
@@ -6,8 +5,6 @@ define([
   function(React, UrlMixin) {
     "use strict";
 
-
-    // jscs:enable
     var SubNavigationItem = React.createClass({
       mixins: [UrlMixin],
       onClick: function(event) {
@@ -52,7 +49,7 @@ define([
             key={item.component}
             component={item.component}
             label={label}
-            active={item.component == this.props.active}
+            active={item.component === this.props.active}
             onClick={this._onClick}/>);
         }
 
