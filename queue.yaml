@@ -14,6 +14,6 @@ queue:
   max_concurrent_requests: 20
  # Queue for synchronizing issue information from JIRA.
 - name: jira-issues
-  rate: 100/h
-  bucket_size: 1
+  rate: 600/h
+  bucket_size: 5
   max_concurrent_requests: 1
