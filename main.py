@@ -156,7 +156,7 @@ def update_jira_issues():
     issue_ids = set(i.link.split('/')[-1] for i in new_entries)
     for issue in issue_ids:
         taskqueue.add(url="/tasks/update-jira-issue/" + issue, queue_name='jira-issues')
-    KVS.put('jira_sync_watermark', new_entries[-2].published_parsed)
+    KVS.put('jira_sync_watermark', new_entries[0].published_parsed)
     return "Queued JIRA issues for update: " + str(issue_ids)
 
 
