@@ -154,8 +154,18 @@ define([
               </a>
             </td>
             <td>{jiraLinks}</td>
-            <td><img src={pr.jira_priority_icon_url} alt={pr.jira_priority_name}/></td>
-            <td><img src={pr.jira_issuetype_icon_url} alt={pr.jira_issuetype_name}/></td>
+            <td>
+              <img
+                src={pr.jira_priority_icon_url}
+                title={pr.jira_priority_name}
+                alt={pr.jira_priority_name}/>
+            </td>
+            <td>
+              <img
+                src={pr.jira_issuetype_icon_url}
+                title={pr.jira_issuetype_name}
+                alt={pr.jira_issuetype_name}/>
+            </td>
             <td>
               <a href={pullLink} target="_blank">
                 {pr.parsed_title.metadata + pr.parsed_title.title}

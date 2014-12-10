@@ -154,8 +154,18 @@ define([
               )
             ), 
             React.createElement("td", null, jiraLinks), 
-            React.createElement("td", null, React.createElement("img", {src: pr.jira_priority_icon_url, alt: pr.jira_priority_name})), 
-            React.createElement("td", null, React.createElement("img", {src: pr.jira_issuetype_icon_url, alt: pr.jira_issuetype_name})), 
+            React.createElement("td", null, 
+              React.createElement("img", {
+                src: pr.jira_priority_icon_url, 
+                title: pr.jira_priority_name, 
+                alt: pr.jira_priority_name})
+            ), 
+            React.createElement("td", null, 
+              React.createElement("img", {
+                src: pr.jira_issuetype_icon_url, 
+                title: pr.jira_issuetype_name, 
+                alt: pr.jira_issuetype_name})
+            ), 
             React.createElement("td", null, 
               React.createElement("a", {href: pullLink, target: "_blank"}, 
                 pr.parsed_title.metadata + pr.parsed_title.title
