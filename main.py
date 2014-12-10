@@ -143,9 +143,19 @@ def update_jira_issues():
     feed_url = "%s/activity?maxResults=20&streams=key+IS+%s&providers=issues" % \
                (app.config['JIRA_API_BASE'], app.config['JIRA_PROJECT'])
     feed = feedparser.parse(feed_url)
-    issue_ids = set(i.link.split('/')[-1] for i in feed.entries)
+    # To avoid double-processing of RSS feed entries, only process entries that are newer than
+    # the watermark set during the last refresh:
+    last_watermark = KVS.get("jira_sync_watermark")
+    if last_watermark is not None:
+        new_entries = [i for i in feed.entries if i.published_parsed > last_watermark]
+    else:
+        new_entries = feed.entries
+    if not new_entries:
+        return "No new entries to update since last watermark " + str(last_watermark)
+    issue_ids = set(i.link.split('/')[-1] for i in new_entries)
     for issue in issue_ids:
         taskqueue.add(url="/tasks/update-jira-issue/" + issue, queue_name='jira-issues')
+    KVS.put('jira_sync_watermark', new_entries[-2].published_parsed)
     return "Queued JIRA issues for update: " + str(issue_ids)
 
 
