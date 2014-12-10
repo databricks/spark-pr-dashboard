@@ -12,7 +12,7 @@ from google.appengine.api import taskqueue, urlfetch, users
 import feedparser
 
 from sparkprs import app, cache
-from sparkprs.models import Issue, KVS, User
+from sparkprs.models import Issue, JIRAIssue, KVS, User
 from sparkprs.github_api import raw_github_request, github_request, ISSUES_BASE, BASE_AUTH_URL
 from link_header import parse as parse_link_header
 
@@ -135,7 +135,7 @@ def update_github_prs():
 @app.route("/tasks/update-github-pr/<int:number>", methods=['GET', 'POST'])
 def update_pr(number):
     Issue.get_or_create(number).update(app.config['GITHUB_OAUTH_KEY'])
-    return "Done updating issue %i" % number
+    return "Done updating pull request %i" % number
 
 
 @app.route("/tasks/update-jira-issues")
@@ -159,9 +159,10 @@ def update_jira_issues():
     return "Queued JIRA issues for update: " + str(issue_ids)
 
 
-@app.route("/tasks/update-jira-issue/<string:issue>", methods=['GET', 'POST'])
-def update_jira_issue(issue):
-    return "Updating issue " + issue
+@app.route("/tasks/update-jira-issue/<string:issue_id>", methods=['GET', 'POST'])
+def update_jira_issue(issue_id):
+    JIRAIssue.get_or_create(issue_id).update()
+    return "Done updating JIRA issue %s" % issue_id
 
 
 #  --------- User-facing pages --------------------------------------------------------------------#
