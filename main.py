@@ -202,6 +202,15 @@ def search_open_prs():
             'last_jenkins_outcome': pr.last_jenkins_outcome,
             'last_jenkins_comment': last_jenkins_comment_dict,
         }
+        # Use the first JIRA's information to populate the "Priority" and "Issue Type" columns:
+        jiras = pr.parsed_title["jiras"]
+        if jiras:
+            first_jira = JIRAIssue.get_by_id("SPARK-%i" % jiras[0])
+            if first_jira:
+                d['jira_priority_name'] = first_jira.priority_name
+                d['jira_priority_icon_url'] = first_jira.priority_icon_url
+                d['jira_issuetype_name'] = first_jira.issuetype_name
+                d['jira_issuetype_icon_url'] = first_jira.issuetype_icon_url
         json_dicts.append(d)
     response = Response(json.dumps(json_dicts), mimetype='application/json')
     return response

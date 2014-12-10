@@ -279,6 +279,14 @@ class JIRAIssue(ndb.Model):
     def priority_icon_url(self):
         return self.issue_json["fields"]['priority']['iconUrl']
 
+    @property
+    def issuetype_name(self):
+        return self.issue_json["fields"]['issuetype']['name']
+
+    @property
+    def issuetype_icon_url(self):
+        return self.issue_json["fields"]['issuetype']['iconUrl']
+
     @classmethod
     def get_or_create(cls, issue_id):
         key = str(ndb.Key("JIRAIssue", issue_id).id())
