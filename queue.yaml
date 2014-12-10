@@ -12,3 +12,8 @@ queue:
   rate: 2500/h  # GitHub's default limit is 5000 requests per hour
   bucket_size: 20
   max_concurrent_requests: 20
+ # Queue for synchronizing issue information from JIRA.
+- name: jira-issues
+  rate: 100/h
+  bucket_size: 1
+  max_concurrent_requests: 1

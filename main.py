@@ -8,7 +8,8 @@ import urlparse
 
 from flask import render_template, redirect, session, make_response, url_for, g, request, abort, \
     Response
-from google.appengine.api import taskqueue, urlfetch
+from google.appengine.api import taskqueue, urlfetch, users
+import feedparser
 
 from sparkprs import app, cache
 from sparkprs.models import Issue, KVS, User
@@ -77,6 +78,16 @@ def logout():
     return redirect(url_for('main'))
 
 
+@app.route('/appengine-admin-login')
+def appengine_admin_login():
+    return redirect(users.create_login_url("/"))
+
+
+@app.route('/appengine-admin-logout')
+def appengine_admin_logout():
+    return redirect(users.create_logout_url("/"))
+
+
 @app.route('/user-info')
 def user_info():
     """
@@ -95,8 +106,8 @@ def user_info():
 #  --------- Task queue and cron jobs -------------------------------------------------------------#
 
 
-@app.route("/tasks/update-issues")
-def update_issues():
+@app.route("/tasks/update-github-prs")
+def update_github_prs():
     def fetch_and_process(url):
         logging.debug("Following url %s" % url)
         response = raw_github_request(url, oauth_token=app.config['GITHUB_OAUTH_KEY'])
@@ -108,7 +119,7 @@ def update_issues():
                 parse_datetime(pr['updated_at']).astimezone(tz.tzutc()).replace(tzinfo=None)
             is_fresh = (now - updated_at).total_seconds() < app.config['FRESHNESS_THRESHOLD']
             queue_name = ("fresh-prs" if is_fresh else "old-prs")
-            taskqueue.add(url="/tasks/update-issue/%i" % pr['number'], queue_name=queue_name)
+            taskqueue.add(url="/tasks/update-github-pr/%i" % pr['number'], queue_name=queue_name)
         for link in link_header.links:
             if link.rel == 'next':
                 fetch_and_process(link.href)
@@ -121,10 +132,26 @@ def update_issues():
     return "Done fetching updated GitHub issues"
 
 
-@app.route("/tasks/update-issue/<int:number>", methods=['GET', 'POST'])
-def update_issue(number):
+@app.route("/tasks/update-github-pr/<int:number>", methods=['GET', 'POST'])
+def update_pr(number):
     Issue.get_or_create(number).update(app.config['GITHUB_OAUTH_KEY'])
     return "Done updating issue %i" % number
+
+
+@app.route("/tasks/update-jira-issues")
+def update_jira_issues():
+    feed_url = "%s/activity?maxResults=20&streams=key+IS+%s&providers=issues" % \
+               (app.config['JIRA_API_BASE'], app.config['JIRA_PROJECT'])
+    feed = feedparser.parse(feed_url)
+    issue_ids = set(i.link.split('/')[-1] for i in feed.entries)
+    for issue in issue_ids:
+        taskqueue.add(url="/tasks/update-jira-issue/" + issue, queue_name='jira-issues')
+    return "Queued JIRA issues for update: " + str(issue_ids)
+
+
+@app.route("/tasks/update-jira-issue/<string:issue>", methods=['GET', 'POST'])
+def update_jira_issue(issue):
+    return "Updating issue " + issue
 
 
 #  --------- User-facing pages --------------------------------------------------------------------#

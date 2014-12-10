@@ -29,7 +29,8 @@ JENKINS_PRB_TOKEN = ''
 # URL for viewing the GitHub pull request builder job on Jenkins (should be https://)
 JENKINS_PRB_JOB_URL = ''
 
-# Setting for JIRA integration (used for automatic issue -> PR linking):
-JIRA_API_BASE = ''
+# Setting for JIRA integration (used for automatic issue <-> PR linking):
+JIRA_API_BASE = 'https://issues.apache.org/jira'
 JIRA_USERNAME = ''
 JIRA_PASSWORD = ''
+JIRA_PROJECT = 'SPARK'
