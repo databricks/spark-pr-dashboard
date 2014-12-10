@@ -2,6 +2,7 @@ import json
 from dateutil.parser import parse as parse_datetime
 from dateutil import tz
 from datetime import datetime
+import itertools
 import logging
 import urllib
 import urlparse
@@ -157,6 +158,19 @@ def update_jira_issues():
         taskqueue.add(url="/tasks/update-jira-issue/" + issue, queue_name='jira-issues')
     KVS.put('jira_sync_watermark', new_entries[-2].published_parsed)
     return "Queued JIRA issues for update: " + str(issue_ids)
+
+
+@app.route("/tasks/update-jira-issues-for-all-open-prs")
+def update_all_jiras_for_open_prs():
+    """
+    Used to bulk-load information from JIRAs for all open PRs.  Useful when upgrading
+    from an earlier version of spark-prs.
+    """
+    prs = Issue.query(Issue.state == "open").order(-Issue.updated_at).fetch()
+    jira_issues = set(itertools.chain.from_iterable(pr.parsed_title['jiras'] for pr in prs))
+    for issue in jira_issues:
+        taskqueue.add(url="/tasks/update-jira-issue/SPARK-%i" % issue, queue_name='jira-issues')
+    return "Queued JIRA issues for update: " + str(jira_issues)
 
 
 @app.route("/tasks/update-jira-issue/<string:issue_id>", methods=['GET', 'POST'])
