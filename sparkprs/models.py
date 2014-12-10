@@ -18,7 +18,7 @@ class KVS(ndb.Model):
     @classmethod
     def get(cls, key_str):
         key = str(ndb.Key("KVS", key_str).id())
-        res = KVS.get_by_id(key)
+        res = KVS.get_by_id(key, use_cache=False, use_memcache=False)
         if res is not None:
             return res.value
 
