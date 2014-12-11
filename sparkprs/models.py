@@ -66,6 +66,7 @@ class Issue(ndb.Model):
     cached_commenters = ndb.PickleProperty()
     cached_last_jenkins_outcome = ndb.StringProperty()
     last_jenkins_comment = ndb.JsonProperty()
+    review_status = ndb.StringProperty(default="Review needed")
 
     ASKED_TO_CLOSE_REGEX = re.compile(r"""
         (mind\s+closing\s+(this|it))|

@@ -81,6 +81,28 @@ define([
       }
     });
 
+    var ReviewStatusCell = React.createClass({
+      getInitialState: function() {
+        return {value: this.props.pr.review_status};
+      },
+      onChange: function(event) {
+        var newValue = event.target.value;
+        if (newValue !== this.state.value) {
+          console.log("Updating state for PR " + this.props.pr.number + " to '" + newValue + "'");
+          this.props.pr.review_status = newValue;
+          this.setState({value: newValue});
+        }
+      },
+      render: function() {
+          return (
+            <select className="form-control" onChange={this.onChange} value={this.state.value}>
+              <option>Review needed</option>
+              <option>Update needed</option>
+            </select>
+          );
+      }
+    });
+
     var PRTableRow = React.createClass({
       componentDidMount: function() {
         if (this.refs.jenkinsPopover !== undefined) {
@@ -146,8 +168,9 @@ define([
           <td>
             <TestWithJenkinsButton pr={pr}/>
           </td>;
+        var rowClass = pr.review_status === "Update needed" ? "muted-row" : "";
         return (
-          <tr>
+          <tr className={rowClass}>
             <td>
               <a href={pullLink} target="_blank">
               {pr.number}
@@ -176,22 +199,15 @@ define([
                 {pr.user}
               </a>
             </td>
-            <td>
-              {commenters}
-            </td>
+            <td>{commenters}</td>
             <td>
               <span className="lines-added">+{pr.lines_added}</span>
               <span className="lines-deleted">-{pr.lines_deleted}</span>
             </td>
-            <td>
-              {mergeIcon}
-            </td>
-            <td>
-              {jenkinsCell}
-            </td>
-            <td>
-              {updatedCell}
-            </td>
+            <td>{mergeIcon}</td>
+            <td>{jenkinsCell}</td>
+            <td><ReviewStatusCell pr={pr}/></td>
+            <td>{updatedCell}</td>
             {this.props.showJenkinsButtons ? toolsCell : ""}
           </tr>
         );
@@ -214,6 +230,7 @@ define([
         'Changes': function(row) { return row.props.pr.lines_changed; },
         'Merges': function(row) { return row.props.pr.is_mergeable; },
         'Jenkins': function(row) { return row.props.pr.last_jenkins_outcome; },
+        'Review Status': function(row) { return "Waiting on author"; },
         'Updated': function(row) { return row.props.pr.updated_at; }
       },
 
@@ -229,6 +246,7 @@ define([
           "Changes",
           "Merges",
           "Jenkins",
+          "Review Status",
           "Updated"
         ];
         if (this.props.showJenkinsButtons) {

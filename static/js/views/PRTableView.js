@@ -81,6 +81,28 @@ define([
       }
     });
 
+    var ReviewStatusCell = React.createClass({displayName: 'ReviewStatusCell',
+      getInitialState: function() {
+        return {value: this.props.pr.review_status};
+      },
+      onChange: function(event) {
+        var newValue = event.target.value;
+        if (newValue !== this.state.value) {
+          console.log("Updating state for PR " + this.props.pr.number + " to '" + newValue + "'");
+          this.props.pr.review_status = newValue;
+          this.setState({value: newValue});
+        }
+      },
+      render: function() {
+          return (
+            React.createElement("select", {className: "form-control", onChange: this.onChange, value: this.state.value}, 
+              React.createElement("option", null, "Review needed"), 
+              React.createElement("option", null, "Update needed")
+            )
+          );
+      }
+    });
+
     var PRTableRow = React.createClass({displayName: 'PRTableRow',
       componentDidMount: function() {
         if (this.refs.jenkinsPopover !== undefined) {
@@ -146,8 +168,9 @@ define([
           React.createElement("td", null, 
             React.createElement(TestWithJenkinsButton, {pr: pr})
           );
+        var rowClass = pr.review_status === "Update needed" ? "muted-row" : "";
         return (
-          React.createElement("tr", null, 
+          React.createElement("tr", {className: rowClass}, 
             React.createElement("td", null, 
               React.createElement("a", {href: pullLink, target: "_blank"}, 
               pr.number
@@ -176,22 +199,15 @@ define([
                 pr.user
               )
             ), 
-            React.createElement("td", null, 
-              commenters
-            ), 
+            React.createElement("td", null, commenters), 
             React.createElement("td", null, 
               React.createElement("span", {className: "lines-added"}, "+", pr.lines_added), 
               React.createElement("span", {className: "lines-deleted"}, "-", pr.lines_deleted)
             ), 
-            React.createElement("td", null, 
-              mergeIcon
-            ), 
-            React.createElement("td", null, 
-              jenkinsCell
-            ), 
-            React.createElement("td", null, 
-              updatedCell
-            ), 
+            React.createElement("td", null, mergeIcon), 
+            React.createElement("td", null, jenkinsCell), 
+            React.createElement("td", null, React.createElement(ReviewStatusCell, {pr: pr})), 
+            React.createElement("td", null, updatedCell), 
             this.props.showJenkinsButtons ? toolsCell : ""
           )
         );
@@ -214,6 +230,7 @@ define([
         'Changes': function(row) { return row.props.pr.lines_changed; },
         'Merges': function(row) { return row.props.pr.is_mergeable; },
         'Jenkins': function(row) { return row.props.pr.last_jenkins_outcome; },
+        'Review Status': function(row) { return "Waiting on author"; },
         'Updated': function(row) { return row.props.pr.updated_at; }
       },
 
@@ -229,6 +246,7 @@ define([
           "Changes",
           "Merges",
           "Jenkins",
+          "Review Status",
           "Updated"
         ];
         if (this.props.showJenkinsButtons) {

@@ -215,6 +215,7 @@ def search_open_prs():
             'commenters': [{'username': u, 'data': d} for (u, d) in pr.commenters],
             'last_jenkins_outcome': pr.last_jenkins_outcome,
             'last_jenkins_comment': last_jenkins_comment_dict,
+            'review_status': pr.review_status,
         }
         # Use the first JIRA's information to populate the "Priority" and "Issue Type" columns:
         jiras = pr.parsed_title["jiras"]
