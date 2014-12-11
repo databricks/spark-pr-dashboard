@@ -1,4 +1,5 @@
 import google.appengine.ext.ndb as ndb
+from google.appengine.api import urlfetch
 from collections import defaultdict
 from dateutil.parser import parse as parse_datetime
 from dateutil import tz
@@ -6,6 +7,7 @@ from github_api import raw_github_request, paginated_github_request, PULLS_BASE,
 import json
 import logging
 import re
+from sparkprs import app
 from sparkprs.utils import parse_pr_title, is_jenkins_command, contains_jenkins_command
 from sparkprs.jira_api import link_issue_to_pr
 
@@ -18,7 +20,7 @@ class KVS(ndb.Model):
     @classmethod
     def get(cls, key_str):
         key = str(ndb.Key("KVS", key_str).id())
-        res = KVS.get_by_id(key)
+        res = KVS.get_by_id(key, use_cache=False, use_memcache=False)
         if res is not None:
             return res.value
 
@@ -211,12 +213,12 @@ class Issue(ndb.Model):
         return Issue.get_or_insert(key, number=number)
 
     def update(self, oauth_token):
-        logging.debug("Updating issue %i" % self.number)
+        logging.debug("Updating pull request %i" % self.number)
         # Record basic information about this pull request
         issue_response = raw_github_request(PULLS_BASE + '/%i' % self.number,
                                             oauth_token=oauth_token, etag=self.etag)
         if issue_response is None:
-            logging.debug("Issue %i hasn't changed since last visit; skipping" % self.number)
+            logging.debug("PR %i hasn't changed since last visit; skipping" % self.number)
             return
         self.pr_json = json.loads(issue_response.content)
         self.etag = issue_response.headers["ETag"]
@@ -253,5 +255,45 @@ class Issue(ndb.Model):
             except:
                 logging.exception("Exception when linking to JIRA issue SPARK-%s" % issue_number)
 
-        # Write our modifications back to the database
-        self.put()
+        self.put()  # Write our modifications back to the database
+
+
+class JIRAIssue(ndb.Model):
+
+    issue_id = ndb.StringProperty(required=True)
+    issue_json = ndb.JsonProperty(compressed=True)
+
+    @property
+    def status_name(self):
+        return self.issue_json["fields"]['status']['statusCategory']['name']
+
+    @property
+    def status_icon_url(self):
+        return self.issue_json["fields"]['status']['iconUrl']
+
+    @property
+    def priority_name(self):
+        return self.issue_json["fields"]['priority']['name']
+
+    @property
+    def priority_icon_url(self):
+        return self.issue_json["fields"]['priority']['iconUrl']
+
+    @property
+    def issuetype_name(self):
+        return self.issue_json["fields"]['issuetype']['name']
+
+    @property
+    def issuetype_icon_url(self):
+        return self.issue_json["fields"]['issuetype']['iconUrl']
+
+    @classmethod
+    def get_or_create(cls, issue_id):
+        key = str(ndb.Key("JIRAIssue", issue_id).id())
+        return JIRAIssue.get_or_insert(key, issue_id=issue_id)
+
+    def update(self):
+        logging.debug("Updating JIRA issue %s" % self.issue_id)
+        url = "%s/rest/api/latest/issue/%s" % (app.config['JIRA_API_BASE'], self.issue_id)
+        self.issue_json = json.loads(urlfetch.fetch(url).content)
+        self.put()  # Write our modifications back to the database

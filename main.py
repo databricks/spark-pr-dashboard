@@ -2,16 +2,18 @@ import json
 from dateutil.parser import parse as parse_datetime
 from dateutil import tz
 from datetime import datetime
+import itertools
 import logging
 import urllib
 import urlparse
 
 from flask import render_template, redirect, session, make_response, url_for, g, request, abort, \
     Response
-from google.appengine.api import taskqueue, urlfetch
+from google.appengine.api import taskqueue, urlfetch, users
+import feedparser
 
 from sparkprs import app, cache
-from sparkprs.models import Issue, KVS, User
+from sparkprs.models import Issue, JIRAIssue, KVS, User
 from sparkprs.github_api import raw_github_request, github_request, ISSUES_BASE, BASE_AUTH_URL
 from link_header import parse as parse_link_header
 
@@ -77,6 +79,16 @@ def logout():
     return redirect(url_for('main'))
 
 
+@app.route('/appengine-admin-login')
+def appengine_admin_login():
+    return redirect(users.create_login_url("/"))
+
+
+@app.route('/appengine-admin-logout')
+def appengine_admin_logout():
+    return redirect(users.create_logout_url("/"))
+
+
 @app.route('/user-info')
 def user_info():
     """
@@ -95,8 +107,8 @@ def user_info():
 #  --------- Task queue and cron jobs -------------------------------------------------------------#
 
 
-@app.route("/tasks/update-issues")
-def update_issues():
+@app.route("/tasks/update-github-prs")
+def update_github_prs():
     def fetch_and_process(url):
         logging.debug("Following url %s" % url)
         response = raw_github_request(url, oauth_token=app.config['GITHUB_OAUTH_KEY'])
@@ -108,7 +120,7 @@ def update_issues():
                 parse_datetime(pr['updated_at']).astimezone(tz.tzutc()).replace(tzinfo=None)
             is_fresh = (now - updated_at).total_seconds() < app.config['FRESHNESS_THRESHOLD']
             queue_name = ("fresh-prs" if is_fresh else "old-prs")
-            taskqueue.add(url="/tasks/update-issue/%i" % pr['number'], queue_name=queue_name)
+            taskqueue.add(url="/tasks/update-github-pr/%i" % pr['number'], queue_name=queue_name)
         for link in link_header.links:
             if link.rel == 'next':
                 fetch_and_process(link.href)
@@ -121,10 +133,50 @@ def update_issues():
     return "Done fetching updated GitHub issues"
 
 
-@app.route("/tasks/update-issue/<int:number>", methods=['GET', 'POST'])
-def update_issue(number):
+@app.route("/tasks/update-github-pr/<int:number>", methods=['GET', 'POST'])
+def update_pr(number):
     Issue.get_or_create(number).update(app.config['GITHUB_OAUTH_KEY'])
-    return "Done updating issue %i" % number
+    return "Done updating pull request %i" % number
+
+
+@app.route("/tasks/update-jira-issues")
+def update_jira_issues():
+    feed_url = "%s/activity?maxResults=20&streams=key+IS+%s&providers=issues" % \
+               (app.config['JIRA_API_BASE'], app.config['JIRA_PROJECT'])
+    feed = feedparser.parse(feed_url)
+    # To avoid double-processing of RSS feed entries, only process entries that are newer than
+    # the watermark set during the last refresh:
+    last_watermark = KVS.get("jira_sync_watermark")
+    if last_watermark is not None:
+        new_entries = [i for i in feed.entries if i.published_parsed > last_watermark]
+    else:
+        new_entries = feed.entries
+    if not new_entries:
+        return "No new entries to update since last watermark " + str(last_watermark)
+    issue_ids = set(i.link.split('/')[-1] for i in new_entries)
+    for issue in issue_ids:
+        taskqueue.add(url="/tasks/update-jira-issue/" + issue, queue_name='jira-issues')
+    KVS.put('jira_sync_watermark', new_entries[0].published_parsed)
+    return "Queued JIRA issues for update: " + str(issue_ids)
+
+
+@app.route("/tasks/update-jira-issues-for-all-open-prs")
+def update_all_jiras_for_open_prs():
+    """
+    Used to bulk-load information from JIRAs for all open PRs.  Useful when upgrading
+    from an earlier version of spark-prs.
+    """
+    prs = Issue.query(Issue.state == "open").order(-Issue.updated_at).fetch()
+    jira_issues = set(itertools.chain.from_iterable(pr.parsed_title['jiras'] for pr in prs))
+    for issue in jira_issues:
+        taskqueue.add(url="/tasks/update-jira-issue/SPARK-%i" % issue, queue_name='jira-issues')
+    return "Queued JIRA issues for update: " + str(jira_issues)
+
+
+@app.route("/tasks/update-jira-issue/<string:issue_id>", methods=['GET', 'POST'])
+def update_jira_issue(issue_id):
+    JIRAIssue.get_or_create(issue_id).update()
+    return "Done updating JIRA issue %s" % issue_id
 
 
 #  --------- User-facing pages --------------------------------------------------------------------#
@@ -164,6 +216,15 @@ def search_open_prs():
             'last_jenkins_outcome': pr.last_jenkins_outcome,
             'last_jenkins_comment': last_jenkins_comment_dict,
         }
+        # Use the first JIRA's information to populate the "Priority" and "Issue Type" columns:
+        jiras = pr.parsed_title["jiras"]
+        if jiras:
+            first_jira = JIRAIssue.get_by_id("SPARK-%i" % jiras[0])
+            if first_jira:
+                d['jira_priority_name'] = first_jira.priority_name
+                d['jira_priority_icon_url'] = first_jira.priority_icon_url
+                d['jira_issuetype_name'] = first_jira.issuetype_name
+                d['jira_issuetype_icon_url'] = first_jira.issuetype_icon_url
         json_dicts.append(d)
     response = Response(json.dumps(json_dicts), mimetype='application/json')
     return response

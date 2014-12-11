@@ -155,6 +155,18 @@ define([
             ), 
             React.createElement("td", null, jiraLinks), 
             React.createElement("td", null, 
+              React.createElement("img", {
+                src: pr.jira_priority_icon_url, 
+                title: pr.jira_priority_name, 
+                alt: pr.jira_priority_name})
+            ), 
+            React.createElement("td", null, 
+              React.createElement("img", {
+                src: pr.jira_issuetype_icon_url, 
+                title: pr.jira_issuetype_name, 
+                alt: pr.jira_issuetype_name})
+            ), 
+            React.createElement("td", null, 
               React.createElement("a", {href: pullLink, target: "_blank"}, 
                 pr.parsed_title.metadata + pr.parsed_title.title
               )
@@ -194,6 +206,8 @@ define([
       sortFunctions: {
         'Number': function(row) { return row.props.pr.number; },
         'JIRAs': function(row) { return row.props.pr.parsed_title.jiras; },
+        'Priority': function(row) { return row.props.pr.jira_priority_name; },
+        'Issue Type': function(row) { return row.props.pr.jira_issuetype_name; },
         'Title': function(row) { return row.props.pr.parsed_title.title.toLowerCase(); },
         'Author': function(row) { return row.props.pr.user.toLowerCase(); },
         'Commenters': function(row) { return row.props.pr.commenters.length; },
@@ -207,6 +221,8 @@ define([
         var columNames = [
           "Number",
           "JIRAs",
+          "Priority",
+          "Issue Type",
           "Title",
           "Author",
           "Commenters",

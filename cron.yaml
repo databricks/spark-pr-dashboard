@@ -1,7 +1,10 @@
 cron:
-- description: update issues
-  url: /tasks/update-issues
+- description: update Github pull requests
+  url: /tasks/update-github-prs
   schedule: every 1 minutes
+- description: update JIRA issues
+  url: /tasks/update-jira-issues
+  schedule: every 5 minutes
 - description: cache warming
   url: /search-open-prs
   schedule: every 1 minutes
