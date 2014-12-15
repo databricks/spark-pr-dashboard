@@ -33,7 +33,7 @@ module.exports = function(grunt) {
 
     watch: {
       react: {
-				files: ["Gruntfile.js", "static/**/*.js", "static/**/*.jsx"],
+        files: ["Gruntfile.js", "static/**/*.js", "static/**/*.jsx"],
         tasks: ['default']
       }
     }
