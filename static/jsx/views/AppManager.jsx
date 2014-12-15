@@ -5,9 +5,10 @@ define([
     'underscore',
     'views/Dashboard',
     'views/UsersPage',
-    'views/UserDashboard'
+    'views/UserDashboard',
+    'views/reports/OpenJIRAsWithClosedPRsReport'
   ],
-  function(React, Router, $, _, Dashboard, UsersPage, UserDashboard) {
+  function(React, Router, $, _, Dashboard, UsersPage, UserDashboard, OpenJIRAsWithClosedPRsReport) {
     "use strict";
 
     var RouterMixin = Router.RouterMixin;
@@ -87,7 +88,8 @@ define([
         '/': 'openPrs',
         '/open-prs': 'openPrs',
         '/users/': 'users',
-        '/users/:username*': 'userDashboard'
+        '/users/:username*': 'userDashboard',
+        '/reports/open-jira-issues-with-closed-prs': 'openJIRAsWithClosedPRsReport'
       },
 
       userIsAdmin: function() {
@@ -116,6 +118,10 @@ define([
             prs={this.state.prs}
             username={username}
             showJenkinsButtons={this.userCanUseJenkins()}/>);
+      },
+
+      openJIRAsWithClosedPRsReport: function() {
+        return (<OpenJIRAsWithClosedPRsReport/>);
       },
 
       getInitialState: function() {
@@ -161,6 +167,22 @@ define([
           </li>
         );
 
+        var reportsTab = (
+          <li className={pathname.indexOf('/reports') === 0 ? "dropdown active" : "dropdown"}>
+            <a
+              href="#"
+              className="dropdown-toggle"
+              data-toggle="dropdown"
+              role="button"
+              aria-expanded="false">Reports<span className="caret"></span></a>
+            <ul className="dropdown-menu" role="menu">
+              <li><a href="/reports/open-jira-issues-with-closed-prs">
+                Open JIRA issues with closed PRs
+              </a></li>
+            </ul>
+          </li>
+        );
+
         return (
           <div>
             <nav id="main-nav" className="navbar navbar-default"
@@ -179,6 +201,7 @@ define([
                     Users
                     </a>
                   </li>
+                  {reportsTab}
                   {this.userIsAdmin() ? adminTab : ""}
                 </ul>
 

@@ -264,8 +264,16 @@ class JIRAIssue(ndb.Model):
     issue_json = ndb.JsonProperty(compressed=True)
 
     @property
+    def summary(self):
+        return self.issue_json['fields']['summary']
+
+    @property
+    def is_closed(self):
+        return self.issue_json['fields']['status']['statusCategory']['name'] == "Complete"
+
+    @property
     def status_name(self):
-        return self.issue_json["fields"]['status']['statusCategory']['name']
+        return self.issue_json["fields"]['status']['name']
 
     @property
     def status_icon_url(self):

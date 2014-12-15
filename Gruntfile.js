@@ -18,14 +18,14 @@ module.exports = function(grunt) {
     },
 
     jshint: {
-      src: ["Gruntfile.js", "static/js/*.js", "static/jsx/mixins/*.jsx", "static/jsx/views/*.jsx"],
+      src: ["Gruntfile.js", "static/js/*.js", "static/jsx/**/*.jsx"],
       options: {
         jshintrc: true
       }
     },
 
     jscs: {
-      src: ["Gruntfile.js", "static/js/*.js", "static/jsx/mixins/*.jsx", "static/jsx/views/*.jsx"],
+      src: ["Gruntfile.js", "static/js/*.js", "static/jsx/**/*.jsx"],
       options: {
         config: ".jscs.json"
       }
@@ -33,7 +33,7 @@ module.exports = function(grunt) {
 
     watch: {
       react: {
-				files: ["Gruntfile.js", "static/js/*.js", "static/jsx/mixins/*.jsx", "static/jsx/views/*.jsx"],
+				files: ["Gruntfile.js", "static/**/*.js", "static/**/*.jsx"],
         tasks: ['default']
       }
     }

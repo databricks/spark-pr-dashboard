@@ -230,6 +230,20 @@ def search_open_prs():
     return response
 
 
+@app.route('/reports/open-jira-issues-with-closed-prs.json')
+@cache.cached(timeout=60)
+def closed_prs_with_open_jira_issues_json():
+    json_dicts = {}
+    for pr in Issue.query(Issue.state == "closed").fetch():
+        for jira in pr.parsed_title['jiras']:
+            issue_id = "SPARK-%i" % jira
+            jira_info = JIRAIssue.get_by_id(issue_id)
+            if jira_info is not None and not jira_info.is_closed:
+                json_dicts[issue_id] = ({'id': issue_id, 'summary': jira_info.summary})
+    response = Response(json.dumps(json_dicts.values()), mimetype='application/json')
+    return response
+
+
 @app.route("/trigger-jenkins/<int:number>", methods=['GET', 'POST'])
 def test_pr(number):
     """
@@ -294,5 +308,6 @@ def admin_panel():
 @app.route('/open-prs')
 @app.route('/users')
 @app.route('/users/<username>')
+@app.route('/reports/open-jira-issues-with-closed-prs')
 def main(username=None):
     return build_response('index.html')
