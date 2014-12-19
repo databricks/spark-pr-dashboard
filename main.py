@@ -166,7 +166,7 @@ def update_all_jiras_for_open_prs():
     Used to bulk-load information from JIRAs for all open PRs.  Useful when upgrading
     from an earlier version of spark-prs.
     """
-    prs = Issue.query(Issue.state == "open").order(-Issue.updated_at).fetch()
+    prs = Issue.query(Issue.state == "open").order(-Issue.updated_at).iter()
     jira_issues = set(itertools.chain.from_iterable(pr.parsed_title['jiras'] for pr in prs))
     for issue in jira_issues:
         taskqueue.add(url="/tasks/update-jira-issue/SPARK-%i" % issue, queue_name='jira-issues')
@@ -191,7 +191,7 @@ def build_response(template, max_age=60):
 @app.route('/search-open-prs')
 @cache.cached(timeout=60)
 def search_open_prs():
-    prs = Issue.query(Issue.state == "open").order(-Issue.updated_at).fetch()
+    prs = Issue.query(Issue.state == "open").order(-Issue.updated_at).iter()
     json_dicts = []
     for pr in prs:
         last_jenkins_comment_dict = None
@@ -234,7 +234,7 @@ def search_open_prs():
 @cache.cached(timeout=60)
 def closed_prs_with_open_jira_issues_json():
     json_dicts = {}
-    for pr in Issue.query(Issue.state == "closed").fetch():
+    for pr in Issue.query(Issue.state == "closed").iter():
         for jira in pr.parsed_title['jiras']:
             issue_id = "SPARK-%i" % jira
             jira_info = JIRAIssue.get_by_id(issue_id)
