@@ -12,8 +12,9 @@ from flask import render_template, redirect, session, make_response, url_for, g,
 from google.appengine.api import taskqueue, urlfetch, users
 import feedparser
 
-from sparkprs import app, cache
-from sparkprs.models import Issue, JIRAIssue, KVS, User
+from sparkprs import app, cache, db
+from sparkprs.models import Issue, KVS, User
+from sparkprs.models2 import JIRAIssue
 from sparkprs.github_api import raw_github_request, github_request, ISSUES_BASE, BASE_AUTH_URL
 from link_header import parse as parse_link_header
 
@@ -175,7 +176,12 @@ def update_all_jiras_for_open_prs():
 
 @app.route("/tasks/update-jira-issue/<string:issue_id>", methods=['GET', 'POST'])
 def update_jira_issue(issue_id):
-    JIRAIssue.get_or_create(issue_id).update()
+    logging.debug("Updating JIRA issue %s" % issue_id)
+    url = "%s/rest/api/latest/issue/%s" % (app.config['JIRA_API_BASE'], issue_id)
+    issue = JIRAIssue.get_or_create(issue_id)
+    issue.issue_json = json.loads(urlfetch.fetch(url).content)
+    db.session.add(issue)
+    db.session.commit()
     return "Done updating JIRA issue %s" % issue_id
 
 
@@ -219,7 +225,7 @@ def search_open_prs():
         # Use the first JIRA's information to populate the "Priority" and "Issue Type" columns:
         jiras = pr.parsed_title["jiras"]
         if jiras:
-            first_jira = JIRAIssue.get_by_id("SPARK-%i" % jiras[0])
+            first_jira = JIRAIssue.query.get("SPARK-%i" % jiras[0])
             if first_jira:
                 d['jira_priority_name'] = first_jira.priority_name
                 d['jira_priority_icon_url'] = first_jira.priority_icon_url
