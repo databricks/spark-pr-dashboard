@@ -1,18 +1,21 @@
-import google.appengine.ext.ndb as ndb
-from google.appengine.api import urlfetch
 from collections import defaultdict
-from dateutil.parser import parse as parse_datetime
-from dateutil import tz
-from github_api import raw_github_request, paginated_github_request, PULLS_BASE, ISSUES_BASE
 import json
 import logging
 import re
-from sparkprs import app
+
+import google.appengine.ext.ndb as ndb
+from dateutil.parser import parse as parse_datetime
+from dateutil import tz
+
+from github_api import raw_github_request, paginated_github_request, PULLS_BASE, ISSUES_BASE
 from sparkprs.utils import parse_pr_title, is_jenkins_command, contains_jenkins_command
 from sparkprs.jira_api import link_issue_to_pr
 
 
 class KVS(ndb.Model):
+    """
+    Simple key-value store, used for persisting ad-hoc things like fetch watermarks, etc.
+    """
     key_str = ndb.StringProperty()
     value = ndb.PickleProperty()
     value_str = ndb.StringProperty()
@@ -31,21 +34,6 @@ class KVS(ndb.Model):
         kvs_pair.value = value
         kvs_pair.value_str = str(value)
         ndb.Model.put(kvs_pair)
-
-
-class User(ndb.Model):
-    github_login = ndb.StringProperty(required=True)
-    github_access_token = ndb.StringProperty()
-    github_user_json = ndb.JsonProperty()
-    roles = ndb.StringProperty(repeated=True)
-
-    def has_capability(self, capability):
-        if "admin" in self.roles:
-            return True
-        elif capability == "jenkins":
-            return "jenkins-admin" in self.roles
-        else:
-            return False
 
 
 class Issue(ndb.Model):
@@ -255,45 +243,4 @@ class Issue(ndb.Model):
             except:
                 logging.exception("Exception when linking to JIRA issue SPARK-%s" % issue_number)
 
-        self.put()  # Write our modifications back to the database
-
-
-class JIRAIssue(ndb.Model):
-
-    issue_id = ndb.StringProperty(required=True)
-    issue_json = ndb.JsonProperty(compressed=True)
-
-    @property
-    def status_name(self):
-        return self.issue_json["fields"]['status']['statusCategory']['name']
-
-    @property
-    def status_icon_url(self):
-        return self.issue_json["fields"]['status']['iconUrl']
-
-    @property
-    def priority_name(self):
-        return self.issue_json["fields"]['priority']['name']
-
-    @property
-    def priority_icon_url(self):
-        return self.issue_json["fields"]['priority']['iconUrl']
-
-    @property
-    def issuetype_name(self):
-        return self.issue_json["fields"]['issuetype']['name']
-
-    @property
-    def issuetype_icon_url(self):
-        return self.issue_json["fields"]['issuetype']['iconUrl']
-
-    @classmethod
-    def get_or_create(cls, issue_id):
-        key = str(ndb.Key("JIRAIssue", issue_id).id())
-        return JIRAIssue.get_or_insert(key, issue_id=issue_id)
-
-    def update(self):
-        logging.debug("Updating JIRA issue %s" % self.issue_id)
-        url = "%s/rest/api/latest/issue/%s" % (app.config['JIRA_API_BASE'], self.issue_id)
-        self.issue_json = json.loads(urlfetch.fetch(url).content)
         self.put()  # Write our modifications back to the database
