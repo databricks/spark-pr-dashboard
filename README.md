@@ -14,6 +14,8 @@ The frontend uses [React.js](https://facebook.github.io/react/) to render UI com
 
 ## Development Instructions
 
+These instructions are suitable for local development.
+
 ### Installing dependencies
 1. Install the [App Engine Python SDK](https://developers.google.com/appengine/downloads).
 2. Install library dependencies:
@@ -22,8 +24,15 @@ The frontend uses [React.js](https://facebook.github.io/react/) to render UI com
    pip install -r requirements.txt -t lib
    npm install .   
    ```
-3. Create a `settings.cfg` file (see `settings.cfg.template`).  For most user-facing feature development, it is not necessary to fill out the entire `settings.cfg` file.  However, you may need to supply several of these configuration options in order to test certain backend functionality, such as GitHub data-fetching and authentication, JIRA integration, etc.
-4. Run `dev_appserver.py --datastore_path datastore .` and browse to [http://localhost:8080](http://localhost:8080) to view the application.
+3. Install MySQL Server and Workbench; you can [download and install them manually](https://dev.mysql.com/downloads/), or Mac users can install them using [Homebrew](http://brew.sh/) and [Cask](http://caskroom.io/):
+
+   ```
+   brew install mysql
+   brew cask install mysqlworkbench
+   ```
+4. Create a new database called `spark_prs_dev` on your local MySQL server.
+5. Create a `settings.cfg.local` file (see `settings.cfg.template`).  For most user-facing feature development, it is not necessary to fill out the entire `settings.cfg` file.  However, you may need to supply several of these configuration options in order to test certain backend functionality, such as GitHub data-fetching and authentication, JIRA integration, etc.
+5. Run `dev_appserver.py --datastore_path datastore .` and browse to [http://localhost:8080](http://localhost:8080) to view the application.
 
 ###  Loading Data
 Initially, the dashboard will be empty because the development appserver doesn't run the cron job that contacts GitHub to download pull requests.  The easiest way to get started is to [download a sample database dump](https://www.dropbox.com/s/uoxgx3c028r1pj9/datastore?dl=0) and pass the `--datastore_path /path/to/downloaded/datastore` option to `dev_appserver.py`.

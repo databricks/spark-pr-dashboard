@@ -1,3 +1,6 @@
+# For local dev, set this to: 'mysql://root:@localhost/spark_prs_dev'
+SQLALCHEMY_DATABASE_URI = ''
+
 # OAuth key used for issuing requests against GitHub API
 GITHUB_OAUTH_KEY = ''
 
