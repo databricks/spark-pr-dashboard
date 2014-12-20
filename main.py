@@ -1,25 +1,21 @@
 import json
-from dateutil.parser import parse as parse_datetime
-from dateutil import tz
-from datetime import datetime
-import itertools
 import logging
 import urllib
 import urlparse
 
 from flask import render_template, redirect, session, make_response, url_for, g, request, abort, \
     Response
-from google.appengine.api import taskqueue, urlfetch, users
-import feedparser
+from google.appengine.api import urlfetch, users
 
 from sparkprs import app, cache, db
-from sparkprs.models import Issue, KVS, User
+from sparkprs.models import Issue, User
 from sparkprs.models2 import JIRAIssue
-from sparkprs.github_api import raw_github_request, github_request, ISSUES_BASE, BASE_AUTH_URL
-from link_header import parse as parse_link_header
+from sparkprs.github_api import github_request, BASE_AUTH_URL
 
 from sparkprs.controllers.tasks import tasks
+from sparkprs.controllers.admin import admin
 app.register_blueprint(tasks, url_prefix='/tasks')
+app.register_blueprint(admin, url_prefix='/admin')
 
 #  --------- Authentication and admin panel functionality -----------------------------------------#
 
@@ -195,27 +191,6 @@ def test_pr(number):
         return response.content
     else:
         return redirect(app.config["JENKINS_PRB_JOB_URL"])
-
-
-@app.route("/admin/add-role", methods=['POST'])
-def add_role():
-    if not g.user or "admin" not in g.user.roles:
-        return abort(403)
-    user = User.query(User.github_login == request.form["username"]).get()
-    if user is None:
-        user = User(github_login=request.form["username"])
-    role = request.form["role"]
-    if role not in user.roles:
-        user.roles.append(role)
-        user.put()
-    return "Updated user %s; now has roles %s" % (user.github_login, user.roles)
-
-
-@app.route('/admin')
-def admin_panel():
-    if not g.user or "admin" not in g.user.roles:
-        return abort(403)
-    return build_response('admin.html')
 
 
 @app.route('/')
