@@ -6,7 +6,6 @@ from flask import Blueprint
 from google.appengine.api import urlfetch
 
 from sparkprs import app
-from sparkprs.models import Issue
 
 
 jenkins = Blueprint('jenkins', __name__)

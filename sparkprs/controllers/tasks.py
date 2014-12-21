@@ -96,6 +96,7 @@ def update_pr_comments(pr_number):
                   IssueComment(pr=pr.number, id=comment_id)
         # TODO: check if comment has changed
         comment.author = User.get_or_create(comment_data['user']['login'], db.session)
+        comment.author.avatar_url = comment_data['user']['avatar_url']
         comment.url = comment_data['html_url']
         comment.body = comment_data['body']
         comment.creation_time = \
@@ -125,6 +126,7 @@ def update_pr_review_comments(pr_number):
                   ReviewComment(pr=pr.number, id=comment_id)
         # TODO: check if comment has changed
         comment.author = User.get_or_create(comment_data['user']['login'], db.session)
+        comment.author.avatar_url = comment_data['user']['avatar_url']
         comment.url = comment_data['html_url']
         comment.body = comment_data['body']
         comment.diff_hunk = comment_data['diff_hunk']

@@ -51,6 +51,7 @@ def github_authorized_callback():
     user = User.get_or_create(github_username, db.session)
     user.github_json = github_json
     user.github_access_token = github_access_token
+    user.avatar_url = github_json['avatar_url']
     db.session.add(user)
     db.session.commit()
     session['github_username'] = github_username

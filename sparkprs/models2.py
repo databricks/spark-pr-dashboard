@@ -26,6 +26,7 @@ class User(db.Model):
     update_time = db.Column(
         db.DateTime, nullable=False, default=datetime.now, onupdate=datetime.now)
     pull_requests = db.relationship("PullRequest")
+    avatar_url = db.Column(db.String(256))
 
     def __init__(self, github_username):
         self.github_username = github_username
