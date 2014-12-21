@@ -34,7 +34,28 @@ define([
 
     var Commenter = React.createClass({displayName: 'Commenter',
       componentDidMount: function() {
-        $(this.refs.commenter.getDOMNode()).popover();
+        var _this = this;
+        $(this.refs.commenter.getDOMNode()).popover({
+          trigger: "focus",
+          placement: "left",
+          html: true,
+          title: function() {
+            return "<a href='" + _this.props.comment.url + "'>Comment</a> from <a href='/users/" +
+              _this.props.username + "'>" + _this.props.username + "</a>";
+          },
+          content: function() {
+            var rendered_markdown = marked(_this.props.comment.body);
+            var diff_hunk = _this.props.comment.diff_hunk;
+            if (diff_hunk !== '') {
+              var div = $('<div></div>');
+              div.append($('<pre></pre>').text(diff_hunk));
+              div.append($(rendered_markdown));
+              return div;
+            } else {
+              return rendered_markdown;
+            }
+          }
+        });
       },
 
       render: function() {
@@ -48,15 +69,13 @@ define([
           commenterClass += " asked-to-close";
         }
 
-        var title = "<a href='" + comment.url + "'>Comment</a> from <a href='/users/" +
-          username + "'>" + username + "</a>";
-        var content = marked(comment.body);
-
         return (
-          React.createElement("img", {ref: "commenter", tabIndex: "0", className: commenterClass, 
-            src: comment.avatar + "&s=16", alt: username, 'data-toggle': "popover", 
-            'data-trigger': "focus", 'data-placement': "left", 'data-html': "true", 
-            'data-title': title, 'data-content': content})
+          React.createElement("img", {
+            src: comment.avatar + "&s=16", 
+            alt: username, 
+            ref: "commenter", 
+            tabIndex: "0", 
+            className: commenterClass})
         );
       }
     });
