@@ -8,7 +8,7 @@ from google.appengine.api import urlfetch, users
 from flask import Blueprint
 
 from sparkprs import app, db
-from sparkprs.models2 import User
+from sparkprs.models import User
 from sparkprs.github_api import github_request, BASE_AUTH_URL
 
 

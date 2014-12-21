@@ -1,7 +1,7 @@
 from flask import render_template, g, request, abort
 from flask import Blueprint
 
-from sparkprs.models2 import User
+from sparkprs.models import User
 
 
 admin = Blueprint('admin', __name__)

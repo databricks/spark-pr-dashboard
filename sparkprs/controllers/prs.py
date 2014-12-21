@@ -5,7 +5,7 @@ import re
 from flask import Blueprint, Response
 
 from sparkprs import db
-from sparkprs.models2 import IssueComment, ReviewComment, PullRequest
+from sparkprs.models import IssueComment, ReviewComment, PullRequest
 from sparkprs.utils import is_jenkins_command, contains_jenkins_command
 
 

@@ -11,8 +11,7 @@ from dateutil.parser import parse as parse_datetime
 from dateutil import tz
 
 from sparkprs import app, db
-from sparkprs.models import KVS
-from sparkprs.models2 import JIRAIssue, PullRequest, IssueComment, ReviewComment, User
+from sparkprs.models import JIRAIssue, PullRequest, IssueComment, ReviewComment, User, KVS
 from sparkprs.github_api import raw_github_request, paginated_github_request, PULLS_BASE, ISSUES_BASE
 from sparkprs.jira_api import link_issue_to_pr
 
