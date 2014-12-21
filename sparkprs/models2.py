@@ -1,20 +1,23 @@
-from google.appengine.api import urlfetch
-from collections import defaultdict
-from dateutil.parser import parse as parse_datetime
-from dateutil import tz
 from datetime import datetime
-from github_api import raw_github_request, paginated_github_request, PULLS_BASE, ISSUES_BASE
-import json
-import logging
 import re
-from sparkprs import app, db
-from sparkprs.utils import parse_pr_title, is_jenkins_command, contains_jenkins_command
-from sparkprs.jira_api import link_issue_to_pr
+
 from sqlalchemy_utils import JSONType
+
+from sparkprs import db
+from sparkprs.utils import parse_pr_title
+
+
+prs_jiras = db.Table(
+    "prs_jiras",
+    db.Model.metadata,
+    db.Column("fk_jira", db.String(64), db.ForeignKey("jira_issue.issue_id")),
+    db.Column("fk_pull_request", db.Integer, db.ForeignKey("pull_request.number")),
+)
 
 
 class User(db.Model):
 
+    __tablename__ = 'user'
     id = db.Column(db.Integer, primary_key=True, unique=True, nullable=False, autoincrement=True)
     github_username = db.Column(db.String(128), unique=True, nullable=False)
     github_access_token = db.Column(db.String(128), nullable=True)
@@ -22,11 +25,10 @@ class User(db.Model):
     create_time = db.Column(db.DateTime, nullable=False, default=datetime.now)
     update_time = db.Column(
         db.DateTime, nullable=False, default=datetime.now, onupdate=datetime.now)
+    pull_requests = db.relationship("PullRequest")
 
-    def __init__(self, github_username, github_access_token=None, github_json=None):
+    def __init__(self, github_username):
         self.github_username = github_username
-        self.github_access_token = github_access_token
-        self.github_json = github_json
 
     def __repr__(self):
         return 'User' + str(
@@ -40,11 +42,26 @@ class User(db.Model):
         else:
             return False
 
+    @classmethod
+    def get_or_create(cls, github_username, session):
+        user = User.query.filter_by(github_username=github_username).first()
+        if not user:
+            user = User(github_username)
+            session.add(user)
+            session.flush()
+        return user
+
 
 class JIRAIssue(db.Model):
 
+    __tablename__ = 'jira_issue'
     issue_id = db.Column(db.String(64), primary_key=True, nullable=False)
     issue_json = db.Column(JSONType, nullable=False)
+    pull_requests = db.relationship(
+        "PullRequest",
+        backref="pull_requests",
+        secondary=prs_jiras
+    )
 
     @property
     def status_name(self):
@@ -73,6 +90,130 @@ class JIRAIssue(db.Model):
     @classmethod
     def get_or_create(cls, issue_id):
         return cls.query.get(issue_id) or JIRAIssue(issue_id=issue_id)
+
+
+class IssueComment(db.Model):
+    """
+    Comments left on PRs themselves (e.g. the main discussion thread, not diff comments)
+    """
+
+    __tablename__ = 'issue_comment'
+    pr = db.Column(db.Integer, db.ForeignKey("pull_request.number"),
+                   primary_key=True, autoincrement=False, nullable=False)
+    id = db.Column(db.Integer, primary_key=True, autoincrement=False, nullable=False)
+    author = db.Column(db.Integer, db.ForeignKey("user.id"), nullable=False)
+    url = db.Column(db.String(512), nullable=False)
+    body = db.Column(db.UnicodeText, nullable=False)
+    creation_time = db.Column(db.DateTime, nullable=False)
+    update_time = db.Column(db.DateTime, nullable=False)
+
+
+class ReviewComment(db.Model):
+    """
+    Comments left on PR diffs
+    """
+
+    __tablename__ = 'review_comment'
+    pr = db.Column(db.Integer, db.ForeignKey("pull_request.number"),
+                   primary_key=True, autoincrement=False, nullable=False)
+    id = db.Column(db.Integer, primary_key=True, autoincrement=False, nullable=False)
+    author = db.Column(db.Integer, db.ForeignKey("user.id"), nullable=False)
+    url = db.Column(db.String(512), nullable=False)
+    body = db.Column(db.UnicodeText, nullable=False)
+    diff_hunk = db.Column(db.UnicodeText, nullable=False)
+    update_time = db.Column(db.DateTime, nullable=False)
+
+
+class PullRequest(db.Model):
+
+    __tablename__ = 'pull_request'
+    number = db.Column(db.Integer, primary_key=True, unique=True, nullable=False)
+    update_time = db.Column(db.DateTime, nullable=False)
+    author = db.Column(db.Integer, db.ForeignKey("user.id"), nullable=False)
+    state = db.Column(db.String(64), nullable=False)
+    pr_json = db.Column(JSONType, nullable=False)
+    files_json = db.Column(JSONType)
+    pr_json_etag = db.Column(db.String(128))
+    pr_comments_etag = db.Column(db.String(128))
+    pr_review_comments_etag = db.Column(db.String(128))
+    pr_files_json_etag = db.Column(db.String(128))
+    issue_comments = db.relationship("IssueComment")
+    review_comments = db.relationship("ReviewComment")
+    jira_issues = db.relationship(
+        "JIRAIssue",
+        backref="jira_issues",
+        secondary=prs_jiras
+    )
+
+    _components = [
+        # (name, pr_title_regex, filename_regex)
+        ("Core", "core", "^core/"),
+        ("Scheduler", "schedul", "scheduler"),
+        ("Python", "python|pyspark", "python"),
+        ("YARN", "yarn", "yarn"),
+        ("Mesos", "mesos", "mesos"),
+        ("Web UI", "webui|(web ui)", "spark/ui/"),
+        ("Build", "build", "(pom\.xml)|project"),
+        ("Docs", "docs", "docs|README"),
+        ("EC2", "ec2", "ec2"),
+        ("SQL", "sql", "sql"),
+        ("MLlib", "mllib", "mllib"),
+        ("GraphX", "graphx|pregel", "graphx"),
+        ("Streaming", "stream|flume|kafka|twitter|zeromq", "streaming"),
+        ]
+
+    @property
+    def components(self):
+        """
+        Returns the list of components used to classify this pull request.
+
+        Components are identified automatically based on the files that the pull request
+        modified and any tags added to the pull request's title (such as [GraphX]).
+        """
+        components = []
+        title = ((self.pr_json and self.pr_json["title"]) or self.title or "")
+        modified_files = [f["filename"] for f in (self.files_json or [])]
+        for (component_name, pr_title_regex, filename_regex) in PullRequest._components:
+            if re.search(pr_title_regex, title, re.IGNORECASE) or \
+                    any(re.search(filename_regex, f, re.I) for f in modified_files):
+                components.append(component_name)
+        return components or ["Core"]
+
+    @property
+    def parsed_title(self):
+        """
+        Get a parsed version of this PR's title, which identifies referenced JIRAs and metadata.
+        For example, given a PR titled
+            "[SPARK-975] [core] Visual debugger of stages and callstacks""
+        this will return
+            {'jiras': [975], 'title': 'Visual debugger of stages and callstacks', 'metadata': ''}
+        """
+        return parse_pr_title(self.pr_json["title"])
+
+    @property
+    def is_mergeable(self):
+        return self.pr_json and self.pr_json["mergeable"]
+
+    @property
+    def lines_added(self):
+        if self.pr_json:
+            return self.pr_json.get("additions")
+        else:
+            return ""
+
+    @property
+    def lines_deleted(self):
+        if self.pr_json:
+            return self.pr_json.get("deletions")
+        else:
+            return ""
+
+    @property
+    def lines_changed(self):
+        if self.lines_added != "":
+            return self.lines_added + self.lines_deleted
+        else:
+            return 0
 
 
 db.create_all()

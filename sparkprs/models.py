@@ -1,15 +1,9 @@
 from collections import defaultdict
-import json
-import logging
 import re
 
 import google.appengine.ext.ndb as ndb
-from dateutil.parser import parse as parse_datetime
-from dateutil import tz
 
-from github_api import raw_github_request, paginated_github_request, PULLS_BASE, ISSUES_BASE
-from sparkprs.utils import parse_pr_title, is_jenkins_command, contains_jenkins_command
-from sparkprs.jira_api import link_issue_to_pr
+from sparkprs.utils import is_jenkins_command, contains_jenkins_command
 
 
 class KVS(ndb.Model):
@@ -37,98 +31,11 @@ class KVS(ndb.Model):
 
 
 class Issue(ndb.Model):
-    number = ndb.IntegerProperty(required=True)
-    updated_at = ndb.DateTimeProperty()
-    user = ndb.StringProperty()
-    state = ndb.StringProperty()
-    title = ndb.StringProperty()
-    comments_json = ndb.JsonProperty(compressed=True)
-    comments_etag = ndb.StringProperty()
-    pr_comments_json = ndb.JsonProperty(compressed=True)
-    pr_comments_etag = ndb.StringProperty()
-    files_json = ndb.JsonProperty(compressed=True)
-    files_etag = ndb.StringProperty()
-    pr_json = ndb.JsonProperty()
-    etag = ndb.StringProperty()
-    # Cached properties, while we migrate away from on-the-fly computed ones:
-    cached_commenters = ndb.PickleProperty()
-    cached_last_jenkins_outcome = ndb.StringProperty()
-    last_jenkins_comment = ndb.JsonProperty()
 
     ASKED_TO_CLOSE_REGEX = re.compile(r"""
         (mind\s+closing\s+(this|it))|
         (close\s+this\s+(issue|pr))
     """, re.I | re.X)
-
-    _components = [
-        # (name, pr_title_regex, filename_regex)
-        ("Core", "core", "^core/"),
-        ("Scheduler", "schedul", "scheduler"),
-        ("Python", "python|pyspark", "python"),
-        ("YARN", "yarn", "yarn"),
-        ("Mesos", "mesos", "mesos"),
-        ("Web UI", "webui|(web ui)", "spark/ui/"),
-        ("Build", "build", "(pom\.xml)|project"),
-        ("Docs", "docs", "docs|README"),
-        ("EC2", "ec2", "ec2"),
-        ("SQL", "sql", "sql"),
-        ("MLlib", "mllib", "mllib"),
-        ("GraphX", "graphx|pregel", "graphx"),
-        ("Streaming", "stream|flume|kafka|twitter|zeromq", "streaming"),
-    ]
-
-    @property
-    def components(self):
-        """
-        Returns the list of components used to classify this pull request.
-
-        Components are identified automatically based on the files that the pull request
-        modified and any tags added to the pull request's title (such as [GraphX]).
-        """
-        components = []
-        title = ((self.pr_json and self.pr_json["title"]) or self.title or "")
-        modified_files = [f["filename"] for f in (self.files_json or [])]
-        for (component_name, pr_title_regex, filename_regex) in Issue._components:
-            if re.search(pr_title_regex, title, re.IGNORECASE) or \
-                    any(re.search(filename_regex, f, re.I) for f in modified_files):
-                components.append(component_name)
-        return components or ["Core"]
-
-    @property
-    def parsed_title(self):
-        """
-        Get a parsed version of this PR's title, which identifies referenced JIRAs and metadata.
-        For example, given a PR titled
-            "[SPARK-975] [core] Visual debugger of stages and callstacks""
-        this will return
-            {'jiras': [975], 'title': 'Visual debugger of stages and callstacks', 'metadata': ''}
-        """
-        return parse_pr_title((self.pr_json and self.pr_json["title"]) or self.title or "")
-
-    @property
-    def lines_added(self):
-        if self.pr_json:
-            return self.pr_json.get("additions")
-        else:
-            return ""
-
-    @property
-    def lines_deleted(self):
-        if self.pr_json:
-            return self.pr_json.get("deletions")
-        else:
-            return ""
-
-    @property
-    def lines_changed(self):
-        if self.lines_added != "":
-            return self.lines_added + self.lines_deleted
-        else:
-            return 0
-
-    @property
-    def is_mergeable(self):
-        return self.pr_json and self.pr_json["mergeable"]
 
     @property
     def commenters(self):
@@ -194,53 +101,3 @@ class Issue(ndb.Model):
                 else:
                     status = "Unknown"  # So we display "Unknown" instead of an out-of-date status
         return (status, jenkins_comment)
-
-    @classmethod
-    def get_or_create(cls, number):
-        key = str(ndb.Key("Issue", number).id())
-        return Issue.get_or_insert(key, number=number)
-
-    def update(self, oauth_token):
-        logging.debug("Updating pull request %i" % self.number)
-        # Record basic information about this pull request
-        issue_response = raw_github_request(PULLS_BASE + '/%i' % self.number,
-                                            oauth_token=oauth_token, etag=self.etag)
-        if issue_response is None:
-            logging.debug("PR %i hasn't changed since last visit; skipping" % self.number)
-            return
-        self.pr_json = json.loads(issue_response.content)
-        self.etag = issue_response.headers["ETag"]
-        updated_at = \
-            parse_datetime(self.pr_json['updated_at']).astimezone(tz.tzutc()).replace(tzinfo=None)
-        self.user = self.pr_json['user']['login']
-        self.updated_at = updated_at
-        self.state = self.pr_json['state']
-
-        comments_response = paginated_github_request(ISSUES_BASE + '/%i/comments' % self.number,
-                                                     oauth_token=oauth_token,
-                                                     etag=self.comments_etag)
-        if comments_response is not None:
-            self.comments_json, self.comments_etag = comments_response
-
-        pr_comments_response = paginated_github_request(PULLS_BASE + '/%i/comments' % self.number,
-                                                        oauth_token=oauth_token,
-                                                        etag=self.pr_comments_etag)
-        if pr_comments_response is not None:
-            self.pr_comments_json, self.pr_comments_etag = pr_comments_response
-
-        files_response = paginated_github_request(PULLS_BASE + "/%i/files" % self.number,
-                                                  oauth_token=oauth_token, etag=self.files_etag)
-        if files_response is not None:
-            self.files_json, self.files_etag = files_response
-
-        self.cached_last_jenkins_outcome = None
-        self.last_jenkins_outcome  # force recomputation of Jenkins outcome
-        self.cached_commenters = self._compute_commenters()
-
-        for issue_number in self.parsed_title['jiras']:
-            try:
-                link_issue_to_pr("SPARK-%s" % issue_number, self)
-            except:
-                logging.exception("Exception when linking to JIRA issue SPARK-%s" % issue_number)
-
-        self.put()  # Write our modifications back to the database
