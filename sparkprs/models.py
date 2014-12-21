@@ -26,7 +26,9 @@ class User(db.Model):
     create_time = db.Column(db.DateTime, nullable=False, default=datetime.now)
     update_time = db.Column(
         db.DateTime, nullable=False, default=datetime.now, onupdate=datetime.now)
-    pull_requests = db.relationship("PullRequest")
+    pull_requests = db.relationship("PullRequest", backref="author")
+    issue_comments = db.relationship("IssueComment", backref="author")
+    review_comments = db.relationship("ReviewComment", backref="author")
     avatar_url = db.Column(db.String(256))
 
     def __init__(self, github_username):
@@ -104,7 +106,6 @@ class IssueComment(db.Model):
                    primary_key=True, autoincrement=False, nullable=False)
     id = db.Column(db.Integer, primary_key=True, autoincrement=False, nullable=False)
     author_id = db.Column(db.Integer, db.ForeignKey("user.id"), nullable=False)
-    author = db.relationship("User", remote_side=[author_id])
     url = db.Column(db.String(512), nullable=False)
     body = db.Column(db.UnicodeText, nullable=False)
     creation_time = db.Column(db.DateTime, nullable=False)
@@ -121,7 +122,6 @@ class ReviewComment(db.Model):
                    primary_key=True, autoincrement=False, nullable=False)
     id = db.Column(db.Integer, primary_key=True, autoincrement=False, nullable=False)
     author_id = db.Column(db.Integer, db.ForeignKey("user.id"), nullable=False)
-    author = db.relationship("User", remote_side=[author_id])
     url = db.Column(db.String(512), nullable=False)
     body = db.Column(db.UnicodeText, nullable=False)
     diff_hunk = db.Column(db.UnicodeText, nullable=False)
@@ -134,7 +134,6 @@ class PullRequest(db.Model):
     number = db.Column(db.Integer, primary_key=True, unique=True, nullable=False)
     update_time = db.Column(db.DateTime, nullable=False)
     author_id = db.Column(db.Integer, db.ForeignKey("user.id"), nullable=False)
-    author = db.relationship("User", remote_side=[author_id])
     state = db.Column(db.String(64), nullable=False)
     pr_json = db.Column(JSONType, nullable=False)
     files_json = db.Column(JSONType)

@@ -3,6 +3,7 @@ from collections import defaultdict
 import re
 
 from flask import Blueprint, Response
+from sqlalchemy.orm import joinedload
 
 from sparkprs import db
 from sparkprs.models import IssueComment, ReviewComment, PullRequest
@@ -72,10 +73,11 @@ def compute_last_jenkins_outcome(comments):
 #@cache.cached(timeout=60)
 def search_open_prs():
     json_dicts = []
-    prs = db.session.query(PullRequest).join(IssueComment).join(ReviewComment). \
+    pull_requests = db.session.query(PullRequest).\
+        options(joinedload(PullRequest.issue_comments)). \
         filter(PullRequest.state == "open"). \
         order_by(PullRequest.update_time.desc())
-    for pr in prs:
+    for pr in pull_requests:
         commenters = compute_commenters(pr.issue_comments)
         last_jenkins_comment_dict = None
         """

@@ -19,8 +19,8 @@ def link_issue_to_pr(issue, pr):
     This method is idempotent; the links will only be created if they do not already exist.
     """
     jira_client = get_jira_client()
-    url = pr.pr_json['html_url']
-    title = "[Github] Pull Request #%s (%s)" % (pr.number, pr.user)
+    url = pr['pr_json']['html_url']
+    title = "[Github] Pull Request #%s (%s)" % (pr.number, pr.author.github_username)
 
     existing_links = map(lambda l: l.raw['object']['url'], jira_client.remote_links(issue))
     if url in existing_links:
@@ -31,6 +31,7 @@ def link_issue_to_pr(issue, pr):
     destination = {"title": title, "url": url, "icon": icon}
     jira_client.add_remote_link(issue, destination)
 
-    comment = "User '%s' has created a pull request for this issue:\n%s" % (pr.user, url)
+    comment = "User '%s' has created a pull request for this issue:\n%s" % \
+              (pr.author.github_username, url)
     jira_client.add_comment(issue, comment)
     logging.info("Linked PR %s to JIRA %s" % (pr.number, issue))

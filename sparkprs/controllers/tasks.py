@@ -35,8 +35,7 @@ def update_github_prs():
                 parse_datetime(pr['updated_at']).astimezone(tz.tzutc()).replace(tzinfo=None)
             is_fresh = (now - updated_at).total_seconds() < app.config['FRESHNESS_THRESHOLD']
             queue_name = ("fresh-prs" if is_fresh else "old-prs")
-            taskqueue.add(url=url_for(".update_github_pr", pr_number=pr['number']),
-                          queue_name=queue_name)
+            taskqueue.add(url=url_for(".update_pr", pr_number=pr['number']), queue_name=queue_name)
         for link in link_header.links:
             if link.rel == 'next':
                 fetch_and_process(link.href)
