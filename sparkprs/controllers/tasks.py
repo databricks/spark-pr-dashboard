@@ -62,8 +62,7 @@ def update_pr(pr_number):
     pr.pr_json = json.loads(issue_response.content)
     pr.pr_json_etag = issue_response.headers["ETag"]
     pr.state = pr.pr_json['state']
-    author = User.get_or_create(pr.pr_json['user']['login'], db.session)
-    pr.author = author.id
+    pr.author = User.get_or_create(pr.pr_json['user']['login'], db.session)
     pr.update_time = \
         parse_datetime(pr.pr_json['updated_at']).astimezone(tz.tzutc()).replace(tzinfo=None)
     db.session.add(pr)
@@ -96,8 +95,7 @@ def update_pr_comments(pr_number):
         comment = IssueComment.query.get((pr.number, comment_id)) or \
                   IssueComment(pr=pr.number, id=comment_id)
         # TODO: check if comment has changed
-        author = User.get_or_create(comment_data['user']['login'], db.session)
-        comment.author = author.id
+        comment.author = User.get_or_create(comment_data['user']['login'], db.session)
         comment.url = comment_data['html_url']
         comment.body = comment_data['body']
         comment.creation_time = \
@@ -126,8 +124,7 @@ def update_pr_review_comments(pr_number):
         comment = ReviewComment.query.get((pr.number, comment_id)) or \
                   ReviewComment(pr=pr.number, id=comment_id)
         # TODO: check if comment has changed
-        author = User.get_or_create(comment_data['user']['login'], db.session)
-        comment.author = author.id
+        comment.author = User.get_or_create(comment_data['user']['login'], db.session)
         comment.url = comment_data['html_url']
         comment.body = comment_data['body']
         comment.diff_hunk = comment_data['diff_hunk']

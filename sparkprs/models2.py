@@ -101,7 +101,8 @@ class IssueComment(db.Model):
     pr = db.Column(db.Integer, db.ForeignKey("pull_request.number"),
                    primary_key=True, autoincrement=False, nullable=False)
     id = db.Column(db.Integer, primary_key=True, autoincrement=False, nullable=False)
-    author = db.Column(db.Integer, db.ForeignKey("user.id"), nullable=False)
+    author_id = db.Column(db.Integer, db.ForeignKey("user.id"), nullable=False)
+    author = db.relationship("User", remote_side=[author_id])
     url = db.Column(db.String(512), nullable=False)
     body = db.Column(db.UnicodeText, nullable=False)
     creation_time = db.Column(db.DateTime, nullable=False)
@@ -117,7 +118,8 @@ class ReviewComment(db.Model):
     pr = db.Column(db.Integer, db.ForeignKey("pull_request.number"),
                    primary_key=True, autoincrement=False, nullable=False)
     id = db.Column(db.Integer, primary_key=True, autoincrement=False, nullable=False)
-    author = db.Column(db.Integer, db.ForeignKey("user.id"), nullable=False)
+    author_id = db.Column(db.Integer, db.ForeignKey("user.id"), nullable=False)
+    author = db.relationship("User", remote_side=[author_id])
     url = db.Column(db.String(512), nullable=False)
     body = db.Column(db.UnicodeText, nullable=False)
     diff_hunk = db.Column(db.UnicodeText, nullable=False)
@@ -129,7 +131,8 @@ class PullRequest(db.Model):
     __tablename__ = 'pull_request'
     number = db.Column(db.Integer, primary_key=True, unique=True, nullable=False)
     update_time = db.Column(db.DateTime, nullable=False)
-    author = db.Column(db.Integer, db.ForeignKey("user.id"), nullable=False)
+    author_id = db.Column(db.Integer, db.ForeignKey("user.id"), nullable=False)
+    author = db.relationship("User", remote_side=[author_id])
     state = db.Column(db.String(64), nullable=False)
     pr_json = db.Column(JSONType, nullable=False)
     files_json = db.Column(JSONType)

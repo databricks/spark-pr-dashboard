@@ -48,7 +48,7 @@ def github_authorized_callback():
     github_access_token = github_access_token[0].decode('ascii')
     github_json = json.loads(github_request("user", oauth_token=github_access_token).content)
     github_username = github_json['login']
-    user = User.get_or_create(github_username)
+    user = User.get_or_create(github_username, db.session)
     user.github_json = github_json
     user.github_access_token = github_access_token
     db.session.add(user)
