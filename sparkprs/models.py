@@ -242,6 +242,3 @@ class KVS(ndb.Model):
         kvs_pair.value = value
         kvs_pair.value_str = str(value)
         ndb.Model.put(kvs_pair)
-
-
-db.create_all()
