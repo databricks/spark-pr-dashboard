@@ -6,7 +6,7 @@ from flask import Blueprint, Response
 from sqlalchemy.orm import joinedload
 
 from sparkprs import db
-from sparkprs.models import IssueComment, ReviewComment, PullRequest
+from sparkprs.models import PullRequest
 from sparkprs.utils import is_jenkins_command, contains_jenkins_command
 
 
@@ -19,11 +19,10 @@ ASKED_TO_CLOSE_REGEX = re.compile(r"""
     """, re.I | re.X)
 
 
-
-def compute_commenters(comments):
+def compute_commenters(pr):
     res = defaultdict(dict)  # Indexed by user, since we only display each user once.
     excluded_users = set(("SparkQA", "AmplabJenkins"))
-
+    comments = sorted(pr.issue_comments + pr.review_comments, key=lambda x: x.creation_time)
     for comment in comments:
         if is_jenkins_command(comment.body):
             continue  # Skip comments that solely consist of Jenkins commands
@@ -70,7 +69,7 @@ def compute_last_jenkins_outcome(comments):
     return (status, jenkins_comment)
 
 @prs.route('/search-open-prs')
-#@cache.cached(timeout=60)
+#@cache.cached(timeout=60) #TODO: re-enable caching before going live
 def search_open_prs():
     json_dicts = []
     pull_requests = db.session.query(PullRequest).\
@@ -78,7 +77,6 @@ def search_open_prs():
         filter(PullRequest.state == "open"). \
         order_by(PullRequest.update_time.desc())
     for pr in pull_requests:
-        commenters = compute_commenters(pr.issue_comments)
         last_jenkins_comment_dict = None
         """
         if pr.last_jenkins_comment:
@@ -99,7 +97,7 @@ def search_open_prs():
             'lines_deleted': pr.lines_deleted,
             'lines_changed': pr.lines_changed,
             'is_mergeable': pr.is_mergeable,
-            'commenters': [{'username': u, 'data': d} for (u, d) in commenters],
+            'commenters': [{'username': u, 'data': d} for (u, d) in compute_commenters(pr)],
             'last_jenkins_outcome': "Unknown", #pr.last_jenkins_outcome,
             'last_jenkins_comment': last_jenkins_comment_dict,
             }
