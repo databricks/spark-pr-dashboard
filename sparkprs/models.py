@@ -60,7 +60,7 @@ class JIRAIssue(db.Model):
 
     __tablename__ = 'jira_issue'
     issue_id = db.Column(db.String(64), primary_key=True, nullable=False)
-    issue_json = db.Column(JSONType, nullable=False)
+    issue_json = db.Column(JSONType)
     pull_requests = db.relationship(
         "PullRequest",
         backref="pull_requests",
@@ -125,6 +125,7 @@ class ReviewComment(db.Model):
     url = db.Column(db.String(512), nullable=False)
     body = db.Column(db.UnicodeText, nullable=False)
     diff_hunk = db.Column(db.UnicodeText, nullable=False)
+    creation_time = db.Column(db.DateTime, nullable=False)
     update_time = db.Column(db.DateTime, nullable=False)
 
 
