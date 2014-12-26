@@ -44,15 +44,15 @@ def compute_commenters(pr):
     return sorted(res.items(), key=lambda x: x[1]['date'], reverse=True)
 
 
-def compute_last_jenkins_outcome(comments):
+def compute_last_jenkins_outcome(pr):
     status = "Unknown"
     jenkins_comment = None
-    for comment in (self.comments_json or []):
-        if contains_jenkins_command(comment['body']):
+    for comment in sorted(pr.issue_comments, key=lambda x: x.creation_time):
+        if contains_jenkins_command(comment.body):
             status = "Asked"
             jenkins_comment = comment
-        elif comment['user']['login'] in ("SparkQA", "AmplabJenkins"):
-            body = comment['body'].lower()
+        elif comment.author.github_username in ("SparkQA", "AmplabJenkins"):
+            body = comment.body.lower()
             jenkins_comment = comment
             if "pass" in body:
                 status = "Pass"
@@ -66,7 +66,7 @@ def compute_last_jenkins_outcome(comments):
                 status = "Timeout"
             else:
                 status = "Unknown"  # So we display "Unknown" instead of an out-of-date status
-    return (status, jenkins_comment)
+    return status, jenkins_comment
 
 @prs.route('/search-open-prs')
 #@cache.cached(timeout=60) #TODO: re-enable caching before going live
@@ -77,15 +77,14 @@ def search_open_prs():
         filter(PullRequest.state == "open"). \
         order_by(PullRequest.update_time.desc())
     for pr in pull_requests:
+        jenkins_outcome, jenkins_comment = compute_last_jenkins_outcome(pr)
         last_jenkins_comment_dict = None
-        """
-        if pr.last_jenkins_comment:
+        if jenkins_comment:
             last_jenkins_comment_dict = {
-                'body': pr.last_jenkins_comment['body'],
-                'user': {'login': pr.last_jenkins_comment['user']['login']},
-                'html_url': pr.last_jenkins_comment['html_url'],
-                }
-        """
+                'body': jenkins_comment.body,
+                'user': {'login': jenkins_comment.author.github_username},
+                'html_url': jenkins_comment.url,
+            }
         d = {
             'parsed_title': pr.parsed_title,
             'number': pr.number,
@@ -98,7 +97,7 @@ def search_open_prs():
             'lines_changed': pr.lines_changed,
             'is_mergeable': pr.is_mergeable,
             'commenters': [{'username': u, 'data': d} for (u, d) in compute_commenters(pr)],
-            'last_jenkins_outcome': "Unknown", #pr.last_jenkins_outcome,
+            'last_jenkins_outcome': jenkins_outcome,
             'last_jenkins_comment': last_jenkins_comment_dict,
             }
         # Use the first JIRA's information to populate the "Priority" and "Issue Type" columns:
