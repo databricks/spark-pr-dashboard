@@ -1,11 +1,30 @@
 from datetime import datetime
+import json
 import re
 from google.appengine.ext import ndb as ndb
 
-from sqlalchemy_utils import JSONType
+from sqlalchemy.types import TypeDecorator
+from sqlalchemy.dialects.mysql import LONGTEXT
 
 from sparkprs import db
 from sparkprs.utils import parse_pr_title
+
+
+class JSONType(TypeDecorator):
+    """
+    Type designed for storing JSON data into MySQL.  Based on the corresponding class from
+    sqlalchemy_utils, but designed to handle larger JSON strings; see
+        https://stackoverflow.com/questions/11201563
+    for more details
+    """
+    impl = LONGTEXT
+
+    def process_bind_param(self, value, dialect):
+        return unicode(json.dumps(value))
+
+    def process_result_value(self, value, dialect):
+        if value is not None:
+            return json.loads(value)
 
 
 prs_jiras = db.Table(
