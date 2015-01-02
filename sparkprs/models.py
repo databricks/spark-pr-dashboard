@@ -161,12 +161,13 @@ class PullRequest(db.Model):
     pr_comments_etag = db.Column(db.String(128))
     pr_review_comments_etag = db.Column(db.String(128))
     pr_files_json_etag = db.Column(db.String(128))
-    issue_comments = db.relationship("IssueComment")
-    review_comments = db.relationship("ReviewComment")
+    issue_comments = db.relationship("IssueComment", cascade="delete")
+    review_comments = db.relationship("ReviewComment", cascade="delete")
     jira_issues = db.relationship(
         "JIRAIssue",
         backref="jira_issues",
-        secondary=prs_jiras
+        secondary=prs_jiras,
+        cascade="delete"
     )
 
     _components = [
