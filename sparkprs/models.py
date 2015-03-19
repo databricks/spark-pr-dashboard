@@ -179,8 +179,8 @@ class Issue(ndb.Model):
                 user_dict['said_lgtm'] = (user_dict.get('said_lgtm') or
                                           re.search("lgtm", comment['body'], re.I) is not None)
                 user_dict['asked_to_close'] = \
-                    (user_dict.get('asked_to_close')
-                     or Issue.ASKED_TO_CLOSE_REGEX.search(comment['body']) is not None)
+                    (user_dict.get('asked_to_close') or
+                        Issue.ASKED_TO_CLOSE_REGEX.search(comment['body']) is not None)
         return sorted(res.items(), key=lambda x: x[1]['date'], reverse=True)
 
     def _compute_last_jenkins_outcome(self):
