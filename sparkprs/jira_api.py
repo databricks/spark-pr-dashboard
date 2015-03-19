@@ -18,6 +18,7 @@ def link_issue_to_pr(issue, pr):
 
     This method is idempotent; the links will only be created if they do not already exist.
     """
+    return # TODO
     jira_client = get_jira_client()
     url = pr['pr_json']['html_url']
     title = "[Github] Pull Request #%s (%s)" % (pr.number, pr.author.github_username)

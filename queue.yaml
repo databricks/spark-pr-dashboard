@@ -2,14 +2,14 @@ queue:
   # Queue used for fetching recently-updated PRs.
   # Has a faster processing rate so that the site stays up-to-date.
 - name: fresh-prs
-  rate: 100/m
+  rate: 2000/h
   bucket_size: 100
   max_concurrent_requests: 100
   # Queue used for fetching older PRs.
   # Has a lower processing rate so that bulk-loading doesn't exhaust
   # the GitHub API call rate-limit.
 - name: old-prs
-  rate: 2500/h  # GitHub's default limit is 5000 requests per hour
+  rate: 2000/h  # GitHub's default limit is 5000 requests per hour
   bucket_size: 20
   max_concurrent_requests: 20
  # Queue for synchronizing issue information from JIRA.

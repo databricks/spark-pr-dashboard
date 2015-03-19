@@ -40,7 +40,6 @@ def update_github_prs():
             if link.rel == 'next':
                 fetch_and_process(link.href)
     last_update_time = KVS.get("issues_since")
-    last_update_time = None # TODO fix
     url = ISSUES_BASE + "?sort=updated&state=all&per_page=100"
     if last_update_time:
         url += "&since=%s" % last_update_time
@@ -54,7 +53,7 @@ def update_pr(pr_number):
     logging.debug("Updating pull request %i" % pr_number)
     pr = PullRequest.query.get(pr_number) or PullRequest(number=pr_number)
     issue_response = raw_github_request(PULLS_BASE + '/%i' % pr_number,
-                                        oauth_token=oauth_token) #, etag=pr.pr_json_etag)
+                                        oauth_token=oauth_token, etag=pr.pr_json_etag)
     if issue_response is None:
         logging.debug("PR %i hasn't changed since last visit; skipping" % pr_number)
         return "Done updating pull request %i (nothing changed)" % pr_number

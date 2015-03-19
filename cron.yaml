@@ -5,6 +5,3 @@ cron:
 - description: update JIRA issues
   url: /tasks/update-jira-issues
   schedule: every 5 minutes
-- description: cache warming
-  url: /search-open-prs
-  schedule: every 1 minutes

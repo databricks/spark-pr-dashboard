@@ -73,32 +73,35 @@ def compute_last_jenkins_outcome(pr):
 def search_open_prs():
     json_dicts = []
     pull_requests = db.session.query(PullRequest).\
-        options(joinedload(PullRequest.issue_comments)). \
         filter(PullRequest.state == "open"). \
-        order_by(PullRequest.update_time.desc())
+        order_by(PullRequest.update_time.desc()). \
+        yield_per(1)
+    #options(joinedload(PullRequest.issue_comments)). \
+
     for pr in pull_requests:
-        jenkins_outcome, jenkins_comment = compute_last_jenkins_outcome(pr)
+        print pr.number
+        #jenkins_outcome, jenkins_comment = compute_last_jenkins_outcome(pr)
         last_jenkins_comment_dict = None
-        if jenkins_comment:
-            last_jenkins_comment_dict = {
-                'body': jenkins_comment.body,
-                'user': {'login': jenkins_comment.author.github_username},
-                'html_url': jenkins_comment.url,
-            }
+        #if jenkins_comment:
+         #   last_jenkins_comment_dict = {
+            #    'body': jenkins_comment.body,
+               # 'user': {'login': jenkins_comment.author.github_username},
+                #'html_url': jenkins_comment.url,
+          #  }
         d = {
             'parsed_title': pr.parsed_title,
             'number': pr.number,
             'updated_at': str(pr.update_time),
             'user': pr.author.github_username,
             'state': pr.state,
-            'components': pr.components,
+            #'components': pr.components,
             'lines_added': pr.lines_added,
             'lines_deleted': pr.lines_deleted,
             'lines_changed': pr.lines_changed,
             'is_mergeable': pr.is_mergeable,
-            'commenters': [{'username': u, 'data': d} for (u, d) in compute_commenters(pr)],
-            'last_jenkins_outcome': jenkins_outcome,
-            'last_jenkins_comment': last_jenkins_comment_dict,
+            #'commenters': [{'username': u, 'data': d} for (u, d) in []], #compute_commenters(pr)],
+            #'last_jenkins_outcome': jenkins_outcome,
+            #'last_jenkins_comment': last_jenkins_comment_dict,
             }
         # Use the first JIRA's information to populate the "Priority" and "Issue Type" columns:
         jiras = []  # pr.jira_issues
