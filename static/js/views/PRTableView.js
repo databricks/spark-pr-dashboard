@@ -126,7 +126,7 @@ define([
           React.createElement("i", {className: "glyphicon glyphicon-ok"}) :
           React.createElement("i", {className: "glyphicon glyphicon-remove"}));
 
-        var pullLink = "https://www.github.com/apache/spark/pull/" + pr.number;
+        var pullLink = "https://github.com/apache/spark/pull/" + pr.number;
 
         var jenkinsOutcome = jenkinsOutcomes[pr.last_jenkins_outcome];
         var iconClass = "glyphicon glyphicon-" + jenkinsOutcome.iconName;

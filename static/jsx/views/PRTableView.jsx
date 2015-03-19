@@ -126,7 +126,7 @@ define([
           <i className="glyphicon glyphicon-ok"></i> :
           <i className="glyphicon glyphicon-remove"></i>);
 
-        var pullLink = "https://www.github.com/apache/spark/pull/" + pr.number;
+        var pullLink = "https://github.com/apache/spark/pull/" + pr.number;
 
         var jenkinsOutcome = jenkinsOutcomes[pr.last_jenkins_outcome];
         var iconClass = "glyphicon glyphicon-" + jenkinsOutcome.iconName;
