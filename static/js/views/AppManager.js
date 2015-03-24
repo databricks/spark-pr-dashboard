@@ -56,25 +56,14 @@ define([
       }
     });
 
-    var GitHub = React.createClass({displayName: 'GitHub',
+    var RefreshButton = React.createClass({displayName: 'RefreshButton',
       render: function() {
-        var githubUser, githubAction;
-        if (this.props.user !== null) {
-          githubUser = React.createElement(GitHubUser, {username: this.props.user.github_login});
-          githubAction = React.createElement(GitHubLogout, null);
-        } else {
-          githubAction = React.createElement(GitHubLogin, null);
-        }
-
         return (
-          React.createElement("div", {className: "pull-right"}, 
-            githubUser, 
-            React.createElement("a", {href: "https://github.com/databricks/spark-pr-dashboard", 
-              className: "btn btn-success navbar-btn"}, 
-              React.createElement("span", {className: "octicon octicon-mark-github"}), 
-            "Fork me on GitHub"
-            ), 
-            githubAction
+          React.createElement("a", {className: "btn btn-default navbar-btn", 
+             onClick: this.props.onClick, 
+             disabled: !this.props.enabled}, 
+            React.createElement("span", {className: "octicon octicon-sync"}), 
+            "Refresh"
           )
         );
       }
@@ -119,20 +108,28 @@ define([
       },
 
       getInitialState: function() {
-        return {prs: [], user: null};
+        return {prs: [], user: null, refreshInProgress: false};
       },
 
-      componentDidMount: function() {
+      refreshPrs: function() {
         var _this = this;
-
+        this.setState({refreshInProgress: true});
+        console.log("Refreshing pull requests");
         $.ajax({
           url: '/search-open-prs',
           dataType: 'json',
           success: function(prs) {
-            _this.setState({prs: prs});
+            _this.setState({prs: prs, refreshInProgress: false});
+            console.log("Done refreshing pull requests; prs.length=" + prs.length);
+          },
+          error: function() {
+            _this.setState({refreshInProgress: false});
           }
         });
+      },
 
+      refreshUserInfo: function() {
+        var _this = this;
         $.ajax({
           url: '/user-info',
           dataType: 'json',
@@ -142,6 +139,11 @@ define([
             }
           }
         });
+      },
+
+      componentDidMount: function() {
+        this.refreshPrs();
+        this.refreshUserInfo();
       },
 
       render: function() {
@@ -160,6 +162,19 @@ define([
             )
           )
         );
+
+        var githubUser;
+        if (this.state.user !== null) {
+          console.log(this.state.user);
+          githubUser = (React.createElement(GitHubUser, {username: this.state.user.github_login}));
+        }
+
+        var loginButton;
+        if (this.state.user !== null) {
+          loginButton = React.createElement(GitHubLogout, null);
+        } else {
+          loginButton = React.createElement(GitHubLogin, null);
+        }
 
         return (
           React.createElement("div", null, 
@@ -181,8 +196,16 @@ define([
                   ), 
                   this.userIsAdmin() ? adminTab : ""
                 ), 
-
-                React.createElement(GitHub, {user: this.state.user})
+                React.createElement("div", {className: "pull-right"}, 
+                  githubUser, 
+                  React.createElement(RefreshButton, {onClick: this.refreshPrs, enabled: !this.state.refreshInProgress}), 
+                  React.createElement("a", {href: "https://github.com/databricks/spark-pr-dashboard", 
+                     className: "btn btn-default navbar-btn"}, 
+                    React.createElement("span", {className: "octicon octicon-mark-github"}), 
+                      "Fork me on GitHub"
+                  ), 
+                  loginButton
+                )
               )
             ), 
 
