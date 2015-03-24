@@ -12,7 +12,7 @@ define([
     var Dashboard = React.createClass({
       mixins: [UrlMixin],
       getInitialState: function() {
-        return {prs: [], activeTab: '', currentPrs: []};
+        return {prs: [], prsByComponent: {}, activeTab: '', currentPrs: []};
       },
 
       componentDidMount: function() {
@@ -26,23 +26,13 @@ define([
       },
 
       componentDidUpdate: function(prevProps, prevState) {
-        if (prevState.activeTab !== this.state.activeTab) {
-          this._filterPrsByComponent(this.state.activeTab);
+        var newActiveTab = this.state.activeTab;
+        if (prevState.activeTab !== newActiveTab || prevState.prs !== this.state.prs) {
+          this.setState({
+            activeTab: newActiveTab,
+            currentPrs: this.state.prsByComponent[newActiveTab] || []
+          });
         }
-      },
-
-      _filterPrsByComponent: function(component) {
-        var neededPrs = [],
-            prs = this.state.prs;
-
-        for (var i = 0; i < prs.length; i++) {
-          if (prs[i].component === component) {
-            neededPrs = prs[i].prs;
-            break;
-          }
-        }
-
-        this.setState({activeTab: component, currentPrs: neededPrs});
       },
 
       _prepareData: function(prs) {
@@ -68,7 +58,11 @@ define([
 
         var tab = this._checkTabAvailability(prsByComponent);
 
-        this.setState({prs: result, activeTab: tab ? tab : mainTab});
+        this.setState({
+          prs: result,
+          activeTab: tab ? tab : mainTab,
+          prsByComponent: prsByComponent
+        });
       },
 
       _checkTabAvailability: function(prsByComponent) {
@@ -88,8 +82,7 @@ define([
           subNavigation = (
             <SubNavigation
               prs={this.state.prs}
-              active={this.state.activeTab}
-              onClick={this._filterPrsByComponent}/>);
+              active={this.state.activeTab}/>);
           mainView = (
             <div className="container-fluid">
               <PRTableView
