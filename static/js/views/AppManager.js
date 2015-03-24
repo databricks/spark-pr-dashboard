@@ -144,6 +144,12 @@ define([
       componentDidMount: function() {
         this.refreshPrs();
         this.refreshUserInfo();
+        // Refresh every 5 minutes:
+        this.refreshInterval = window.setInterval(this.refreshPrs, 1000 * 60 * 5);
+      },
+
+      componentWillUnmount: function() {
+        window.clearInterval(this.refreshInterval);
       },
 
       render: function() {
