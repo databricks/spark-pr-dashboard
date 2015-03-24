@@ -10,7 +10,6 @@ define([
       onClick: function(event) {
         var component = this.props.component;
         this.pushAnchor(component);
-        this.props.onClick(component);
       },
 
       render: function() {
@@ -29,10 +28,6 @@ define([
         return {prsCountByGroup: []};
       },
 
-      _onClick: function(component) {
-        this.props.onClick(component);
-      },
-
       render: function() {
         var navigationItems = [],
           prs = this.props.prs;
@@ -49,8 +44,7 @@ define([
             key: item.component, 
             component: item.component, 
             label: label, 
-            active: item.component === this.props.active, 
-            onClick: this._onClick}));
+            active: item.component === this.props.active}));
         }
 
         return (
