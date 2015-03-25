@@ -9,7 +9,7 @@ import logging
 import re
 from sparkprs import app
 from sparkprs.utils import parse_pr_title, is_jenkins_command, contains_jenkins_command
-from sparkprs.jira_api import link_issue_to_pr
+from sparkprs.jira_api import start_issue_progress, link_issue_to_pr
 
 
 class KVS(ndb.Model):
@@ -254,6 +254,10 @@ class Issue(ndb.Model):
                 link_issue_to_pr("SPARK-%s" % issue_number, self)
             except:
                 logging.exception("Exception when linking to JIRA issue SPARK-%s" % issue_number)
+            try:
+                start_issue_progress("SPARK-%s" % issue_number)
+            except:
+                logging.exception("Exception when starting progress on JIRA issue SPARK-%s" % issue_number)
 
         self.put()  # Write our modifications back to the database
 
