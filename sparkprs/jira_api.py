@@ -15,7 +15,7 @@ def get_jira_client():
 def start_issue_progress(issue):
     """
     Given an issue key, e.g. SPARK-6481, mark the issue "In Progress".
-    
+
     This will only happen if the issue's initial state is "Open".
     """
     jira_client = get_jira_client()
@@ -25,16 +25,16 @@ def start_issue_progress(issue):
 
     if status != "Open":
         logging.warn("Could not start progress on JIRA issue {j}. "
-            "It's currently in an '{s}' state. Issues must be in an 'Open' state.".format(
-                j=issue, s=status))
+                     "It's currently in an '{s}' state. Issues must be in an 'Open' state.".format(
+                         j=issue, s=status))
         return
 
     # The Apache Spark user needs the issue assigned to itself in order to change
     # the issue's state.
     jira_client.assign_issue(issue=issue, assignee='apachespark')
-    transition_id = [transition['id'] \
-        for transition in jira_client.transitions(issue) \
-        if transition['name'] == 'Start Progress'][0]
+    transition_id = [transition['id']
+                     for transition in jira_client.transitions(issue)
+                     if transition['name'] == 'Start Progress'][0]
     # Passing transition by name doesn't work, though it should according to the docs...
     jira_client.transition_issue(issue=issue, transition=transition_id)
 

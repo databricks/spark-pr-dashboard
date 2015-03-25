@@ -257,7 +257,8 @@ class Issue(ndb.Model):
             try:
                 start_issue_progress("SPARK-%s" % issue_number)
             except:
-                logging.exception("Exception when starting progress on JIRA issue SPARK-%s" % issue_number)
+                logging.exception(
+                    "Exception when starting progress on JIRA issue SPARK-%s" % issue_number)
 
         self.put()  # Write our modifications back to the database
 
