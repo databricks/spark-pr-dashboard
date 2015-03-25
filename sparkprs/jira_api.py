@@ -23,24 +23,27 @@ def start_issue_progress(issue):
     status = issue_info.fields.status.name
     assignee = issue_info.fields.assignee.name if issue_info.fields.assignee else None
 
-    if status != "Open":
+    if status == "In Progress":
+        return
+    elif status != "Open":
         logging.warn("Could not start progress on JIRA issue {j}. "
                      "It's currently in an '{s}' state. Issues must be in an 'Open' state.".format(
                          j=issue, s=status))
         return
 
-    # The Apache Spark user needs the issue assigned to itself in order to change
-    # the issue's state.
-    jira_client.assign_issue(issue=issue, assignee='apachespark')
-    transition_id = [transition['id']
-                     for transition in jira_client.transitions(issue)
-                     if transition['name'] == 'Start Progress'][0]
-    # Passing transition by name doesn't work, though it should according to the docs...
-    jira_client.transition_issue(issue=issue, transition=transition_id)
-
-    # Restore the original assignee.
-    jira_client.assign_issue(issue=issue, assignee=assignee)
-    logging.info("Started progress on JIRA issue {j}.".format(j=issue))
+    try:
+        # The PR dashboard user needs the issue assigned to itself in order to change
+        # the issue's state.
+        jira_client.assign_issue(issue=issue, assignee=app.config['JIRA_USERNAME'])
+        transition_id = [transition['id']
+                         for transition in jira_client.transitions(issue)
+                         if transition['name'] == 'Start Progress'][0]
+        # Passing transition by name doesn't work, though it should according to the docs...
+        jira_client.transition_issue(issue=issue, transitionId=transition_id)
+        logging.info("Started progress on JIRA issue {j}.".format(j=issue))
+    finally:
+        # Restore the original assignee.
+        jira_client.assign_issue(issue=issue, assignee=assignee)
 
 
 def link_issue_to_pr(issue, pr):
