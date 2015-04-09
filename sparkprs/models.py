@@ -87,6 +87,7 @@ class Issue(ndb.Model):
         ("MLlib", "mllib", "mllib"),
         ("GraphX", "graphx|pregel", "graphx"),
         ("Streaming", "stream|flume|kafka|twitter|zeromq", "streaming"),
+        ("R", "SparkR", "r"),
     ]
 
     @property
