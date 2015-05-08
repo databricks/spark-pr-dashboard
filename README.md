@@ -42,7 +42,7 @@ For now, we commit both the `.jsx` source files and generated `.js` files.  In t
 
 For Python code, we follow the [PEP8](https://www.python.org/dev/peps/pep-0008) style, with the exception of a 100-character maximum line length instead 80.
 
-For Javascript code, we roughly follow the [Airbnb stlye guide](https://github.com/airbnb/javascript).
+For Javascript code, we roughly follow the [Airbnb style guide](https://github.com/airbnb/javascript).
 
 To perform style checks:
 
@@ -53,4 +53,4 @@ grunt lint
 
 ## License
 
-This project is licensed under the Apache 2.0 License. See LICENSE for full license text.
+This project is licensed under the Apache 2.0 License. See [LICENSE](LICENSE) for full license text.
