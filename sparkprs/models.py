@@ -230,14 +230,14 @@ class Issue(ndb.Model):
         self.state = self.pr_json['state']
 
         comments_response = paginated_github_request(ISSUES_BASE + '/%i/comments' % self.number,
-                                                     oauth_token=oauth_token,
-                                                     etag=self.comments_etag)
+                                                     oauth_token=oauth_token)
+        # TODO: after fixing #32, re-enable etags here: etag=self.comments_etag)
         if comments_response is not None:
             self.comments_json, self.comments_etag = comments_response
 
         pr_comments_response = paginated_github_request(PULLS_BASE + '/%i/comments' % self.number,
-                                                        oauth_token=oauth_token,
-                                                        etag=self.pr_comments_etag)
+                                                        oauth_token=oauth_token)
+        # TODO: after fixing #32, re-enable etags here: etag=self.pr_comments_etag)
         if pr_comments_response is not None:
             self.pr_comments_json, self.pr_comments_etag = pr_comments_response
 
