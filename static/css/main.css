@@ -80,3 +80,11 @@ span[data-toggle="popover"]:focus {
 .loading-icon {
     font-size: 36px;
 }
+
+.muted-row {
+    opacity: 0.5;
+}
+
+.muted-row:hover {
+    opacity: 1;
+}
