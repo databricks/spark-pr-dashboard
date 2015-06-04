@@ -239,6 +239,7 @@ def test_pr(number):
         return abort(403)
     pr = Issue.get_or_create(number)
     commit = pr.pr_json["head"]["sha"]
+    target_branch = pr.pr_json["base"]["ref"]
     # The parameter names here were chosen to match the ones used by Jenkins' GitHub pull request
     # builder plugin: https://wiki.jenkins-ci.org/display/JENKINS/Github+pull+request+builder+plugin
     # In the Spark repo, the https://github.com/apache/spark/blob/master/dev/run-tests-jenkins
@@ -247,6 +248,7 @@ def test_pr(number):
         'token': app.config['JENKINS_PRB_TOKEN'],
         'ghprbPullId': number,
         'ghprbActualCommit': commit,
+        'ghprbTargetBranch': target_branch,
         # This matches the Jenkins plugin's logic; see
         # https://github.com/jenkinsci/ghprb-plugin/blob/master/src/main/java/org/jenkinsci/plugins/ghprb/GhprbTrigger.java#L146
         #
