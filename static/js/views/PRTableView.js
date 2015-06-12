@@ -109,9 +109,10 @@ define([
 
       render: function() {
         var pr = this.props.pr;
-        var jiraLinks = _.map(pr.parsed_title.jiras, function(number) {
-          return (React.createElement(JIRALink, {key: number, number: number}));
+        var jiraLinkRows = _.map(pr.parsed_title.jiras, function(number) {
+          return (React.createElement("li", null, React.createElement(JIRALink, {key: number, number: number})));
         });
+        var jiraLinks = React.createElement("ul", {className: "jira-links-list"}, jiraLinkRows);
 
         var commenters = _.map(pr.commenters, function(comment) {
           return (

@@ -80,3 +80,8 @@ span[data-toggle="popover"]:focus {
 .loading-icon {
     font-size: 36px;
 }
+
+.jira-links-list {
+  list-style: none;
+  padding-left:0;
+}

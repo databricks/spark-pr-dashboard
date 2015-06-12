@@ -109,9 +109,10 @@ define([
 
       render: function() {
         var pr = this.props.pr;
-        var jiraLinks = _.map(pr.parsed_title.jiras, function(number) {
-          return (<JIRALink key={number} number={number}/>);
+        var jiraLinkRows = _.map(pr.parsed_title.jiras, function(number) {
+          return (<li><JIRALink key={number} number={number}/></li>);
         });
+        var jiraLinks = <ul className="jira-links-list">{jiraLinkRows}</ul>;
 
         var commenters = _.map(pr.commenters, function(comment) {
           return (
