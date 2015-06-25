@@ -5,6 +5,9 @@ api_version: 1
 threadsafe: yes
 
 handlers:
+- url: /favicon.ico
+  static_files: static/img/favicon.ico
+  upload: static/img/favicon.ico
 - url: /gae_mini_profiler/static
   static_dir: gae_mini_profiler/static
 - url: /gae_mini_profiler/.*
