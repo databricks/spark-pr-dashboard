@@ -4,9 +4,9 @@
   "devDependencies": {
     "grunt": "^0.4.5",
     "grunt-contrib-watch": "^0.6.1",
-    "grunt-jsxcs": "git://github.com/brix/grunt-jsxcs#9125b31785b8a13161c98d73bf4b6aa658eea1c1",
-    "grunt-jsxhint": "^0.4.0",
-    "grunt-react": "^0.10.0",
-    "react-tools": "^0.12.1"
+    "grunt-jsxcs": "git://github.com/brix/grunt-jsxcs.git#9125b31785b8a13161c98d73bf4b6aa658eea1c1",
+    "grunt-jsxhint": "^0.6.0",
+    "grunt-react": "^0.12.2",
+    "react-tools": "^0.13.3"
   }
 }
