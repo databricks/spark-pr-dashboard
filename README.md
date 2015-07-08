@@ -1,4 +1,3 @@
-
 ## Spark PR Review Board
 
 [![Build Status](https://travis-ci.org/databricks/spark-pr-dashboard.svg?branch=master)](https://travis-ci.org/databricks/spark-pr-dashboard)
