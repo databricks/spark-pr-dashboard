@@ -12,7 +12,7 @@ define([
 
     var RouterMixin = Router.RouterMixin;
 
-    var NavigationHeader = React.createClass({displayName: 'NavigationHeader',
+    var NavigationHeader = React.createClass({displayName: "NavigationHeader",
       render: function() {
         return (
           React.createElement("div", {className: "navbar-header"}, 
@@ -24,7 +24,7 @@ define([
       }
     });
 
-    var GitHubUser = React.createClass({displayName: 'GitHubUser',
+    var GitHubUser = React.createClass({displayName: "GitHubUser",
       render: function() {
         var link = "/users/" + this.props.username;
         return (
@@ -36,7 +36,7 @@ define([
       }
     });
 
-    var GitHubLogin = React.createClass({displayName: 'GitHubLogin',
+    var GitHubLogin = React.createClass({displayName: "GitHubLogin",
       render: function() {
         return (
           React.createElement("a", {href: "/login", className: "btn btn-default navbar-btn"}, 
@@ -46,7 +46,7 @@ define([
       }
     });
 
-    var GitHubLogout = React.createClass({displayName: 'GitHubLogout',
+    var GitHubLogout = React.createClass({displayName: "GitHubLogout",
       render: function() {
         return (
           React.createElement("a", {href: "/logout", className: "btn btn-default navbar-btn"}, 
@@ -56,7 +56,7 @@ define([
       }
     });
 
-    var RefreshButton = React.createClass({displayName: 'RefreshButton',
+    var RefreshButton = React.createClass({displayName: "RefreshButton",
       render: function() {
         return (
           React.createElement("a", {className: "btn btn-default navbar-btn", 
@@ -69,7 +69,7 @@ define([
       }
     });
 
-    var AppManager = React.createClass({displayName: 'AppManager',
+    var AppManager = React.createClass({displayName: "AppManager",
       mixins: [RouterMixin],
 
       routes: {

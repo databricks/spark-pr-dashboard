@@ -7,7 +7,7 @@ define([
   function(React, $, _, PRTableView) {
     "use strict";
 
-    var UserDashboard = React.createClass({displayName: 'UserDashboard',
+    var UserDashboard = React.createClass({displayName: "UserDashboard",
       getInitialState: function() {
         return {prsAuthored: [], prsCommentedOn: []};
       },

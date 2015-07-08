@@ -9,7 +9,7 @@ define([
   function(React, $, _, SubNavigation, PRTableView, UrlMixin) {
     "use strict";
 
-    var Dashboard = React.createClass({displayName: 'Dashboard',
+    var Dashboard = React.createClass({displayName: "Dashboard",
       mixins: [UrlMixin],
       getInitialState: function() {
         return {prs: [], prsByComponent: {}, activeTab: '', currentPrs: []};

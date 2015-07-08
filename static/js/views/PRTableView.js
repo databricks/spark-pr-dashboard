@@ -21,7 +21,7 @@ define([
       Unknown: {label: "Unknown", iconName: "question-sign"}
     };
 
-    var JIRALink = React.createClass({displayName: 'JIRALink',
+    var JIRALink = React.createClass({displayName: "JIRALink",
       render: function() {
         var link = "http://issues.apache.org/jira/browse/SPARK-" + this.props.number;
         return (
@@ -32,7 +32,7 @@ define([
       }
     });
 
-    var Commenter = React.createClass({displayName: 'Commenter',
+    var Commenter = React.createClass({displayName: "Commenter",
       componentDidMount: function() {
         var _this = this;
         $(this.refs.commenter.getDOMNode()).popover({
@@ -80,7 +80,7 @@ define([
       }
     });
 
-    var TestWithJenkinsButton = React.createClass({displayName: 'TestWithJenkinsButton',
+    var TestWithJenkinsButton = React.createClass({displayName: "TestWithJenkinsButton",
       onClick: function() {
         var prNum = this.props.pr.number;
         var shouldTest = confirm("Are you sure you want to test PR " + prNum + " with Jenkins?");
@@ -100,7 +100,7 @@ define([
       }
     });
 
-    var PRTableRow = React.createClass({displayName: 'PRTableRow',
+    var PRTableRow = React.createClass({displayName: "PRTableRow",
       componentDidMount: function() {
         if (this.refs.jenkinsPopover !== undefined) {
           $(this.refs.jenkinsPopover.getDOMNode()).popover();
@@ -142,9 +142,9 @@ define([
 
           jenkinsCell = (
             React.createElement("span", {ref: "jenkinsPopover", tabIndex: "0", 
-              'data-toggle': "popover", 'data-trigger': "focus", 
-              'data-placement': "left", 'data-html': "true", 
-              'data-title': title, 'data-content': content}, 
+              "data-toggle": "popover", "data-trigger": "focus", 
+              "data-placement": "left", "data-html": "true", 
+              "data-title": title, "data-content": content}, 
               React.createElement("i", {className: iconClass}), 
               React.createElement("span", {className: "jenkins-outcome-link"}, 
                 jenkinsOutcome.label
@@ -218,7 +218,7 @@ define([
       }
     });
 
-    var PRTableView = React.createClass({displayName: 'PRTableView',
+    var PRTableView = React.createClass({displayName: "PRTableView",
       propTypes: {
         prs: React.PropTypes.array.isRequired
       },
