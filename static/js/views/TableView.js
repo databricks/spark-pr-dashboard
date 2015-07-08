@@ -6,7 +6,7 @@ define([
   function(React, $, _) {
     "use strict";
 
-    var ColumnHeader = React.createClass({displayName: 'ColumnHeader',
+    var ColumnHeader = React.createClass({displayName: "ColumnHeader",
       propTypes: {
         name: React.PropTypes.string.isRequired,
         sortable: React.PropTypes.bool.isRequired,
@@ -43,7 +43,7 @@ define([
     /**
      * A table view that supports customizable per-column sorting.
      */
-    var TableView = React.createClass({displayName: 'TableView',
+    var TableView = React.createClass({displayName: "TableView",
       propTypes: {
         rows: React.PropTypes.arrayOf(React.PropTypes.element).isRequired,
         columnNames: React.PropTypes.arrayOf(React.PropTypes.string).isRequired,

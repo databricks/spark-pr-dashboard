@@ -7,7 +7,7 @@ define([
   function(React, $, _, TableView) {
     'use strict';
 
-    var UsersTableRow = React.createClass({displayName: 'UsersTableRow',
+    var UsersTableRow = React.createClass({displayName: "UsersTableRow",
       render: function() {
         var href = '/users/' + this.props.username;
         return (
@@ -19,7 +19,7 @@ define([
       }
     });
 
-    var UsersPage = React.createClass({displayName: 'UsersPage',
+    var UsersPage = React.createClass({displayName: "UsersPage",
 
       columnNames: ['Username', 'Open PRs'],
 
