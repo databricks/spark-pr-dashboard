@@ -187,9 +187,6 @@ define([
                 alt: pr.jira_issuetype_name})
             ), 
             React.createElement("td", null, 
-              React.createElement("span", null, pr.jira_shepherd_display_name)
-            ), 
-            React.createElement("td", null, 
               React.createElement("a", {href: pullLink, target: "_blank"}, 
                 pr.parsed_title.metadata + pr.parsed_title.title
               )
@@ -198,6 +195,9 @@ define([
               React.createElement("a", {href: "/users/" + pr.user}, 
                 pr.user
               )
+            ), 
+            React.createElement("td", null, 
+              React.createElement("span", null, pr.jira_shepherd_display_name)
             ), 
             React.createElement("td", null, 
               commenters
@@ -247,9 +247,9 @@ define([
           "JIRAs",
           "Priority",
           "Issue Type",
-          "Shepherd",
           "Title",
           "Author",
+          "Shepherd",
           "Commenters",
           "Changes",
           "Merges",
