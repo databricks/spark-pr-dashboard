@@ -197,6 +197,9 @@ define([
               </a>
             </td>
             <td>
+              <span>{pr.jira_shepherd_display_name}</span>
+            </td>
+            <td>
               {commenters}
             </td>
             <td>
@@ -230,6 +233,7 @@ define([
         'Issue Type': function(row) { return row.props.pr.jira_issuetype_name; },
         'Title': function(row) { return row.props.pr.parsed_title.title.toLowerCase(); },
         'Author': function(row) { return row.props.pr.user.toLowerCase(); },
+        'Shepherd': function(row) { return row.props.pr.jira_shepherd_display_name || ''; },
         'Commenters': function(row) { return row.props.pr.commenters.length; },
         'Changes': function(row) { return row.props.pr.lines_changed; },
         'Merges': function(row) { return row.props.pr.is_mergeable; },
@@ -245,6 +249,7 @@ define([
           "Issue Type",
           "Title",
           "Author",
+          "Shepherd",
           "Commenters",
           "Changes",
           "Merges",

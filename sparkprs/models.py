@@ -286,6 +286,15 @@ class Issue(ndb.Model):
 
 
 class JIRAIssue(ndb.Model):
+    """
+    Models an issue from JIRA.
+
+    `issue_json` holds the JSON response returned from JIRA's REST API. The schema of this JSON is
+    documented at https://docs.atlassian.com/jira/REST/latest/#d2e216.
+
+    For custom fields that are specific to the Apache JIRA, you can find a mapping from field names
+    to ids at https://issues.apache.org/jira/rest/api/latest/field.
+    """
 
     issue_id = ndb.StringProperty(required=True)
     issue_json = ndb.JsonProperty(compressed=True)
@@ -313,6 +322,12 @@ class JIRAIssue(ndb.Model):
     @property
     def issuetype_icon_url(self):
         return self.issue_json["fields"]['issuetype']['iconUrl']
+
+    @property
+    def shepherd_display_name(self):
+        shepherd = self.issue_json["fields"]['customfield_12311620']
+        if shepherd:
+            return shepherd['displayName']
 
     @classmethod
     def get_or_create(cls, issue_id):
