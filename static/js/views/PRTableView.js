@@ -187,6 +187,9 @@ define([
                 alt: pr.jira_issuetype_name})
             ), 
             React.createElement("td", null, 
+              React.createElement("span", null, pr.jira_shepherd_display_name)
+            ), 
+            React.createElement("td", null, 
               React.createElement("a", {href: pullLink, target: "_blank"}, 
                 pr.parsed_title.metadata + pr.parsed_title.title
               )
@@ -228,6 +231,7 @@ define([
         'JIRAs': function(row) { return row.props.pr.parsed_title.jiras; },
         'Priority': function(row) { return row.props.pr.jira_priority_name; },
         'Issue Type': function(row) { return row.props.pr.jira_issuetype_name; },
+        'Shepherd': function(row) { return row.props.pr.jira_shepherd_display_name || ''; },
         'Title': function(row) { return row.props.pr.parsed_title.title.toLowerCase(); },
         'Author': function(row) { return row.props.pr.user.toLowerCase(); },
         'Commenters': function(row) { return row.props.pr.commenters.length; },
@@ -243,6 +247,7 @@ define([
           "JIRAs",
           "Priority",
           "Issue Type",
+          "Shepherd",
           "Title",
           "Author",
           "Commenters",
