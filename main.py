@@ -4,6 +4,7 @@ from dateutil import tz
 from datetime import datetime
 import itertools
 import logging
+import re
 import urllib
 import urlparse
 
@@ -284,18 +285,26 @@ def clean_jenkins_comments(pr_number):
     jenkins_comment_to_preserve = compute_last_jenkins_outcome(pr.comments_json)[1]
     sparkqa_token = app.config["SPARKQA_GITHUB_OAUTH_KEY"]
     amplabjenkins_token = app.config["AMPLAB_JENKINS_GITHUB_OAUTH_KEY"]
+    spark_qa_build_start_comments = {}  # Map from build ID to build start comment
     for comment in (pr.comments_json or []):
         author = comment["user"]["login"]
-        url = comment["url"]
-        if url == jenkins_comment_to_preserve["url"]:
-            logging.debug("Preserving comment %s from %s", url, author)
-            continue  # Do not delete the comment displayed on the PR dashboard
-        elif author == "AmplabJenkins":
-            logging.debug("Deleting comment %s from %s", url, author)
-            raw_github_request(url, oauth_token=amplabjenkins_token, method="DELETE")
+        # Delete all comments from AmplabJenkins _unless_ they are the comments that should be
+        # displayed on the Spark PR dashboard.
+        if author == "AmplabJenkins" and comment["url"] != jenkins_comment_to_preserve["url"]:
+            raw_github_request(comment["url"], oauth_token=amplabjenkins_token, method="DELETE")
         elif author == "SparkQA":
-            logging.debug("Deleting comment %s from %s", url, author)
-        raw_github_request(url, oauth_token=sparkqa_token, method="DELETE")
+            # Only delete build start notification comments from SparkQA and only delete them
+            # after we've seen the corresponding build finished message.
+            start_regex_match = re.search(r"Test build #(\d+) has started", comment["body"])
+            if start_regex_match:
+                spark_qa_build_start_comments[start_regex_match.groups()[0]] = comment
+            else:
+                end_regex_match = re.search(r"Test build #(\d+) has finished", comment["body"])
+                if end_regex_match:
+                    start_comment = spark_qa_build_start_comments.get(end_regex_match.groups()[0])
+                    if start_comment:
+                        raw_github_request(start_comment["url"], oauth_token=sparkqa_token,
+                                           method="DELETE")
     return Response("SUCCESS")
 
 
