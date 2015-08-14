@@ -276,12 +276,13 @@ def test_pr(number):
 @app.route("/clean-jenkins-comments/<int:pr_number>", methods=['GET', 'POST'])
 def clean_jenkins_comments(pr_number):
     """
-    Delete out-of-date comments from AmplabJenkins.
+    Delete out-of-date comments from AmplabJenkins and SparkQA.
     """
     if not (g.user and g.user.has_capability("clean-jenkins-comments")):
         return abort(403)
     pr = Issue.get_or_create(pr_number)
     jenkins_comment_to_preserve = compute_last_jenkins_outcome(pr.comments_json)[1]
+    sparkqa_token = app.config["SPARKQA_GITHUB_OAUTH_KEY"]
     amplabjenkins_token = app.config["AMPLAB_JENKINS_GITHUB_OAUTH_KEY"]
     for comment in (pr.comments_json or []):
         author = comment["user"]["login"]
@@ -292,6 +293,9 @@ def clean_jenkins_comments(pr_number):
         elif author == "AmplabJenkins":
             logging.debug("Deleting comment %s from %s", url, author)
             raw_github_request(url, oauth_token=amplabjenkins_token, method="DELETE")
+        elif author == "SparkQA":
+            logging.debug("Deleting comment %s from %s", url, author)
+        raw_github_request(url, oauth_token=sparkqa_token, method="DELETE")
     return Response("SUCCESS")
 
 

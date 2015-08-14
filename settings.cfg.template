@@ -38,3 +38,4 @@ JIRA_PROJECT = 'SPARK'
 # Settings for integrating with pull request builder bots (used for deleting outdated comments).
 # These tokens only need permission to edit issue comments.
 AMPLAB_JENKINS_GITHUB_OAUTH_KEY = ''
+SPARKQA_GITHUB_OAUTH_KEY = ''
