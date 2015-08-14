@@ -1,6 +1,6 @@
 cron:
 - description: update Github pull requests
-  url: /tasks/update-github-prs
+  url: /tasks/github/update-prs
   schedule: every 1 minutes
 - description: update JIRA issues
   url: /tasks/update-jira-issues

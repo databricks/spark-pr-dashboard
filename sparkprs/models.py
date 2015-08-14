@@ -1,15 +1,11 @@
 import google.appengine.ext.ndb as ndb
 from google.appengine.api import urlfetch
 from collections import defaultdict
-from dateutil.parser import parse as parse_datetime
-from dateutil import tz
-from github_api import raw_github_request, paginated_github_request, PULLS_BASE, ISSUES_BASE
 import json
 import logging
 import re
 from sparkprs import app
 from sparkprs.utils import parse_pr_title, is_jenkins_command, compute_last_jenkins_outcome
-from sparkprs.jira_api import start_issue_progress, link_issue_to_pr
 
 
 class KVS(ndb.Model):
@@ -54,14 +50,16 @@ class Issue(ndb.Model):
     user = ndb.StringProperty()
     state = ndb.StringProperty()
     title = ndb.StringProperty()
-    comments_json = ndb.JsonProperty(compressed=True)
-    comments_etag = ndb.StringProperty()
-    pr_comments_json = ndb.JsonProperty(compressed=True)
-    pr_comments_etag = ndb.StringProperty()
-    files_json = ndb.JsonProperty(compressed=True)
-    files_etag = ndb.StringProperty()
+    # Raw JSON data
     pr_json = ndb.JsonProperty()
+    comments_json = ndb.JsonProperty(compressed=True)
+    pr_comments_json = ndb.JsonProperty(compressed=True)
+    files_json = ndb.JsonProperty(compressed=True)
+    # ETags for limiting our GitHub requests
     etag = ndb.StringProperty()
+    comments_etag = ndb.StringProperty()
+    pr_comments_etag = ndb.StringProperty()
+    files_etag = ndb.StringProperty()
     # Cached properties, while we migrate away from on-the-fly computed ones:
     cached_commenters = ndb.PickleProperty()
     cached_last_jenkins_outcome = ndb.StringProperty()
@@ -189,55 +187,10 @@ class Issue(ndb.Model):
         key = str(ndb.Key("Issue", number).id())
         return Issue.get_or_insert(key, number=number)
 
-    def update(self, oauth_token):
-        logging.debug("Updating pull request %i" % self.number)
-        # Record basic information about this pull request
-        issue_response = raw_github_request(PULLS_BASE + '/%i' % self.number,
-                                            oauth_token=oauth_token, etag=self.etag)
-        if issue_response is None:
-            logging.debug("PR %i hasn't changed since last visit; skipping" % self.number)
-            return
-        self.pr_json = json.loads(issue_response.content)
-        self.etag = issue_response.headers["ETag"]
-        updated_at = \
-            parse_datetime(self.pr_json['updated_at']).astimezone(tz.tzutc()).replace(tzinfo=None)
-        self.user = self.pr_json['user']['login']
-        self.updated_at = updated_at
-        self.state = self.pr_json['state']
-
-        comments_response = paginated_github_request(ISSUES_BASE + '/%i/comments' % self.number,
-                                                     oauth_token=oauth_token)
-        # TODO: after fixing #32, re-enable etags here: etag=self.comments_etag)
-        if comments_response is not None:
-            self.comments_json, self.comments_etag = comments_response
-
-        pr_comments_response = paginated_github_request(PULLS_BASE + '/%i/comments' % self.number,
-                                                        oauth_token=oauth_token)
-        # TODO: after fixing #32, re-enable etags here: etag=self.pr_comments_etag)
-        if pr_comments_response is not None:
-            self.pr_comments_json, self.pr_comments_etag = pr_comments_response
-
-        files_response = paginated_github_request(PULLS_BASE + "/%i/files" % self.number,
-                                                  oauth_token=oauth_token, etag=self.files_etag)
-        if files_response is not None:
-            self.files_json, self.files_etag = files_response
-
-        self.cached_last_jenkins_outcome = None
-        self.last_jenkins_outcome  # force recomputation of Jenkins outcome
-        self.cached_commenters = self._compute_commenters()
-
-        for issue_number in self.parsed_title['jiras']:
-            try:
-                link_issue_to_pr("SPARK-%s" % issue_number, self)
-            except:
-                logging.exception("Exception when linking to JIRA issue SPARK-%s" % issue_number)
-            try:
-                start_issue_progress("SPARK-%s" % issue_number)
-            except:
-                logging.exception(
-                    "Exception when starting progress on JIRA issue SPARK-%s" % issue_number)
-
-        self.put()  # Write our modifications back to the database
+    @classmethod
+    def get(cls, number):
+        key = str(ndb.Key("Issue", number).id())
+        return Issue.get_by_id(key)
 
 
 class JIRAIssue(ndb.Model):
