@@ -34,3 +34,8 @@ JIRA_API_BASE = 'https://issues.apache.org/jira'
 JIRA_USERNAME = ''
 JIRA_PASSWORD = ''
 JIRA_PROJECT = 'SPARK'
+
+# Settings for integrating with pull request builder bots (used for deleting outdated comments).
+# These tokens only need permission to edit issue comments.
+AMPLAB_JENKINS_GITHUB_OAUTH_KEY = ''
+SPARKQA_GITHUB_OAUTH_KEY = ''

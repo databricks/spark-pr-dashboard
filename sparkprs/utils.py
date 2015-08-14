@@ -92,3 +92,49 @@ def parse_pr_title(pr_title):
         'title': rest,
         'jiras': jiras,
     }
+
+
+def compute_last_jenkins_outcome(comments_json):
+    # Because the Jenkins GHPRB plugin isn't fully configurable on a per-project basis, each PR
+    # ends up receiving comments from multiple bots on build failures. The SparkQA bot posts the
+    # detailed build failure messages that mention the specific tests that failed; this bot is
+    # controlled by the run-tests-jenkins.sh script in Spark. The AmplabJenkins bot is
+    # controlled by the Jenkins GHPRB plugin and posts the generic build outcome comments. If
+    # the plugin supported per-project configurations, then we could suppress these redundant
+    # messages.
+    #
+    # The AmplabJenkins comments aren't useful except when the build fails in a way that
+    # prevents SparkQA from being able to post an error message (e.g. if there's an error in
+    # the run-tests-jenkins.sh script itself). Therefore, we ignore failure / success comments
+    # from AmplabJenkins as long as the previous comment is from SparkQA.
+    status = "Unknown"
+    jenkins_comment = None
+    prev_author = None
+    for comment in (comments_json or []):
+        author = comment['user']['login']
+        body = comment['body'].lower()
+        if contains_jenkins_command(body):
+            status = "Asked"
+            jenkins_comment = comment
+        elif author == "AmplabJenkins":
+            if "can one of the admins verify this patch?" in body:
+                jenkins_comment = comment
+                status = "Verify"
+            elif "fail" in body and \
+                    (prev_author != "SparkQA" or status not in ("Fail", "Timeout")):
+                jenkins_comment = comment
+                status = "Fail"
+        elif author == "SparkQA":
+            if "pass" in body:
+                status = "Pass"
+            elif "fail" in body:
+                status = "Fail"
+            elif "started" in body:
+                status = "Running"
+            elif "timed out" in body:
+                status = "Timeout"
+            else:
+                status = "Unknown"  # So we display "Unknown" instead of out-of-date status
+            jenkins_comment = comment
+        prev_author = author
+    return (status, jenkins_comment)

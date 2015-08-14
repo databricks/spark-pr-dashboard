@@ -15,6 +15,7 @@ import feedparser
 from sparkprs import app, cache
 from sparkprs.models import Issue, JIRAIssue, KVS, User
 from sparkprs.github_api import raw_github_request, github_request, ISSUES_BASE, BASE_AUTH_URL
+from sparkprs.utils import compute_last_jenkins_outcome
 from link_header import parse as parse_link_header
 
 
@@ -270,6 +271,32 @@ def test_pr(number):
         return response.content
     else:
         return redirect(app.config["JENKINS_PRB_JOB_URL"])
+
+
+@app.route("/clean-jenkins-comments/<int:pr_number>", methods=['GET', 'POST'])
+def clean_jenkins_comments(pr_number):
+    """
+    Delete out-of-date comments from AmplabJenkins and SparkQA.
+    """
+    if not (g.user and g.user.has_capability("clean-jenkins-comments")):
+        return abort(403)
+    pr = Issue.get_or_create(pr_number)
+    jenkins_comment_to_preserve = compute_last_jenkins_outcome(pr.comments_json)[1]
+    sparkqa_token = app.config["SPARKQA_GITHUB_OAUTH_KEY"]
+    amplabjenkins_token = app.config["AMPLAB_JENKINS_GITHUB_OAUTH_KEY"]
+    for comment in (pr.comments_json or []):
+        author = comment["user"]["login"]
+        url = comment["url"]
+        if url == jenkins_comment_to_preserve["url"]:
+            logging.debug("Preserving comment %s from %s", url, author)
+            continue  # Do not delete the comment displayed on the PR dashboard
+        elif author == "AmplabJenkins":
+            logging.debug("Deleting comment %s from %s", url, author)
+            raw_github_request(url, oauth_token=amplabjenkins_token, method="DELETE")
+        elif author == "SparkQA":
+            logging.debug("Deleting comment %s from %s", url, author)
+        raw_github_request(url, oauth_token=sparkqa_token, method="DELETE")
+    return Response("SUCCESS")
 
 
 @app.route("/admin/add-role", methods=['POST'])
