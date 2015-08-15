@@ -14,16 +14,18 @@ def github_request(resource, oauth_token=None, etag=None):
     return raw_github_request(BASE_URL + resource, oauth_token, etag)
 
 
-def raw_github_request(url, oauth_token=None, etag=None):
+def raw_github_request(url, oauth_token=None, etag=None, method="GET"):
     headers = {}
     if etag is not None:
         headers['If-None-Match'] = etag
     if oauth_token is not None:
         headers["Authorization"] = "token %s" % oauth_token
     logging.info("Requesting %s from GitHub with headers %s" % (url, headers))
-    response = urlfetch.fetch(url, headers=headers, method="GET")
+    response = urlfetch.fetch(url, headers=headers, method=method)
     if response.status_code == 304:
         return None
+    elif method.lower() == "delete":
+        return response
     elif response.status_code == 200:
         return response
     else:

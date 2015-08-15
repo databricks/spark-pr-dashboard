@@ -2,6 +2,7 @@ from datetime import datetime
 import itertools
 import json
 import logging
+import re
 
 from flask import Blueprint, url_for
 from google.appengine.api import taskqueue
@@ -99,6 +100,33 @@ def update_pr_comments(pr_number):
         pr.cached_last_jenkins_outcome = None
         pr.last_jenkins_outcome  # force recomputation of Jenkins outcome
         pr.put()  # Write our modifications back to the database
+
+        # Delete out-of-date comments from AmplabJenkins and SparkQA.
+        jenkins_comment_to_preserve = pr.last_jenkins_comment
+        sparkqa_token = app.config["SPARKQA_GITHUB_OAUTH_KEY"]
+        amplabjenkins_token = app.config["AMPLAB_JENKINS_GITHUB_OAUTH_KEY"]
+        sparkqa_start_comments = {}  # Map from build ID to build start comment
+        build_start_regex = r"Test build #(\d+) has started"
+        build_end_regex = r"Test build #(\d+) (has finished|timed out)"
+        for comment in (pr.comments_json or []):
+            author = comment["user"]["login"]
+            # Delete all comments from AmplabJenkins unless they are the comments that should be
+            # displayed on the Spark PR dashboard.
+            if author == "AmplabJenkins" and comment["url"] != jenkins_comment_to_preserve["url"]:
+                raw_github_request(comment["url"], oauth_token=amplabjenkins_token, method="DELETE")
+            elif author == "SparkQA":
+                # Only delete build start notification comments from SparkQA and only delete them
+                # after we've seen the corresponding build finished message.
+                start_regex_match = re.search(build_start_regex, comment["body"])
+                if start_regex_match:
+                    sparkqa_start_comments[start_regex_match.groups()[0]] = comment
+                else:
+                    end_regex_match = re.search(build_end_regex, comment["body"])
+                    if end_regex_match:
+                        start_comment = sparkqa_start_comments.get(end_regex_match.groups()[0])
+                        if start_comment:
+                            raw_github_request(start_comment["url"], oauth_token=sparkqa_token,
+                                               method="DELETE")
         return "Done updating comments for PR %i" % pr_number
 
 
