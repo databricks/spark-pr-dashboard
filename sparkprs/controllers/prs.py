@@ -22,6 +22,7 @@ def search_open_prs():
                 'body': pr.last_jenkins_comment['body'],
                 'user': {'login': pr.last_jenkins_comment['user']['login']},
                 'html_url': pr.last_jenkins_comment['html_url'],
+                'date': [pr.last_jenkins_comment['created_at']],
             }
         d = {
             'parsed_title': pr.parsed_title,

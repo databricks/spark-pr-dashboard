@@ -40,8 +40,10 @@ define([
           placement: "left",
           html: true,
           title: function() {
+            var postTime = _this.props.comment.date[0];
             return "<a href='" + _this.props.comment.url + "'>Comment</a> from <a href='/users/" +
-              _this.props.username + "'>" + _this.props.username + "</a>";
+              _this.props.username + "'>" + _this.props.username + "</a>, posted " +
+              "<abbr title='" + postTime + "'>" + $.timeago(postTime) + "</abbr>";
           },
           content: function() {
             var rendered_markdown = marked(_this.props.comment.body);
@@ -136,8 +138,10 @@ define([
         var lastJenkinsComment = pr.last_jenkins_comment;
         if (lastJenkinsComment) {
           var username = lastJenkinsComment.user.login;
+          var postTime = lastJenkinsComment.date[0];
           var title = "<a href='" + lastJenkinsComment.html_url + "'>Comment</a> from " +
-            "<a href='/users/" + username + "'>" + username + "</a>";
+            "<a href='/users/" + username + "'>" + username + "</a>, posted " +
+             "<abbr title='" + postTime + "'>" + $.timeago(postTime) + "</abbr>";
           var content = marked(lastJenkinsComment.body);
 
           jenkinsCell = (
