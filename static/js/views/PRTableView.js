@@ -57,7 +57,11 @@ define([
               return rendered_markdown;
             }
           }
-        });
+        }).click(function(e) {
+           // Hack to fix comment popovers in Firefox.
+           e.preventDefault();
+           $(this).focus();
+         });
       },
 
       render: function() {
