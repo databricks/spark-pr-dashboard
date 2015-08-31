@@ -83,7 +83,7 @@ def parse_pr_title(pr_title):
     # Remove JIRAs from the metadata:
     metadata_without_jiras = re.sub(r"\[?SPARK-\d+\]?", "", metadata, flags=re.I)
     # Remove certain tags, since they're generally noise once the PRs are categorized:
-    tags_to_remove = ["MLLIB", "CORE", "PYSPARK", "SQL", "STREAMING", "YARN", "GRAPHX"]
+    tags_to_remove = ["MLLIB", "ML", "CORE", "PYSPARK", "SQL", "STREAMING", "YARN", "GRAPHX"]
     tags_to_remove_regex = "|".join(r"(?:\[?" + x + "\]?)" for x in tags_to_remove)
     metadata_without_jiras_or_tags = \
         re.sub(tags_to_remove_regex, "", metadata_without_jiras, flags=re.I).strip()

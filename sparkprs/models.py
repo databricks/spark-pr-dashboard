@@ -82,7 +82,7 @@ class Issue(ndb.Model):
         ("Docs", "docs", "docs|README"),
         ("EC2", "ec2", "ec2"),
         ("SQL", "sql", "sql"),
-        ("MLlib", "mllib", "mllib"),
+        ("MLlib", "mllib|ml", "mllib|/ml/|docs/ml"),
         ("GraphX", "graphx|pregel", "graphx"),
         ("Streaming", "stream|flume|kafka|twitter|zeromq", "streaming"),
         ("R", "SparkR", "(^r/)|src/main/r/|api/r/"),
