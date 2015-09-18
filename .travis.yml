@@ -6,6 +6,7 @@ install:
 sudo: false
 script:
   - pep8
+  - pip install -r requirements.txt
   - python -m doctest sparkprs/utils.py
   - npm install .
   - npm install -g grunt-cli

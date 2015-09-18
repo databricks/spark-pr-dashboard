@@ -3,11 +3,18 @@ from link_header import parse as parse_link_header
 import logging
 import json
 
+from sparkprs import app
 
 BASE_URL = 'https://api.github.com/'
 BASE_AUTH_URL = 'https://github.com/login/oauth/'
-ISSUES_BASE = BASE_URL + "repos/apache/spark/issues"
-PULLS_BASE = BASE_URL + "repos/apache/spark/pulls"
+
+
+def get_issues_base():
+    return BASE_URL + "repos/%s/issues" % app.config['GITHUB_PROJECT']
+
+
+def get_pulls_base():
+    return BASE_URL + "repos/%s/pulls" % app.config['GITHUB_PROJECT']
 
 
 def github_request(resource, oauth_token=None, etag=None):

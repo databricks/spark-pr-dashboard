@@ -3,6 +3,7 @@ Utility functions, placed here for easy testing.
 """
 import re
 
+from sparkprs import app
 
 JENKINS_COMMAND_REGEX = r"""
         (jenkins,?\s*)?                     # Optional address, followed by a command:
@@ -71,19 +72,21 @@ def parse_pr_title(pr_title):
     # where this metadata ends and the actual title begins:
     (metadata, rest) = re.match(r"""((?:                  # The metadata consists of either:
                                     (?:\[[^\]]*\]\s*)     # Tags enclosed in brackets, like [CORE]
-                                   |(?:SPARK-\d+\s*)      # JIRA issues, like SPARK-957
+                                   |(?:%s-\d+\s*)         # JIRA issues, like SPARK-957
                                     )*)                   # The metadata is optional.
                                     (.*)                  # The rest is assumed to be the title.
-                                """, pr_title, re.X | re.I).groups()
+                                """ % app.config['JIRA_PROJECT'],
+                                pr_title, re.X | re.I).groups()
     # Strip punctuation that might have separated the JIRAs/tags from the rest of the title:
     rest = rest.lstrip(':-.')
     # Users might have included JIRAs elsewhere in the title, so we need to
     #  search the entire pull request title for JIRAs:
-    jiras = [int(x) for x in re.findall(r"SPARK-(\d+)", pr_title, re.I)]
+    jiras = [int(x) for x in re.findall(r"%s-(\d+)" % app.config['JIRA_PROJECT'], pr_title, re.I)]
     # Remove JIRAs from the metadata:
-    metadata_without_jiras = re.sub(r"\[?SPARK-\d+\]?", "", metadata, flags=re.I)
+    metadata_without_jiras = re.sub(r"\[?%s-\d+\]?" % app.config['JIRA_PROJECT'],
+                                    "", metadata, flags=re.I)
     # Remove certain tags, since they're generally noise once the PRs are categorized:
-    tags_to_remove = ["MLLIB", "ML", "CORE", "PYSPARK", "SQL", "STREAMING", "YARN", "GRAPHX"]
+    tags_to_remove = app.config['JIRA_TAGS_TO_REMOVE']
     tags_to_remove_regex = "|".join(r"(?:\[?" + x + "\]?)" for x in tags_to_remove)
     metadata_without_jiras_or_tags = \
         re.sub(tags_to_remove_regex, "", metadata_without_jiras, flags=re.I).strip()

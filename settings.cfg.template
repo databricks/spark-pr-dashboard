@@ -14,6 +14,9 @@ GITHUB_CLIENT_SECRET = ''
 # development.
 GITHUB_CALLBACK_URL = ''
 
+# GitHub account and repository name, separated by a slash.
+GITHUB_PROJECT='apache/spark'
+
 # Threshold (in seconds) used for classifying "fresh" pull requests.
 # If a pull request has been updated within the last FRESHNESS_THRESHOLD
 # seconds, then updates for it are fetched using a task queue with a higher
@@ -34,6 +37,9 @@ JIRA_API_BASE = 'https://issues.apache.org/jira'
 JIRA_USERNAME = ''
 JIRA_PASSWORD = ''
 JIRA_PROJECT = 'SPARK'
+
+# remove these tags from pull request titles
+JIRA_TAGS_TO_REMOVE = ["MLLIB", "ML", "CORE", "PYSPARK", "SQL", "STREAMING", "YARN", "GRAPHX"]
 
 # Settings for integrating with pull request builder bots (used for deleting outdated comments).
 # These tokens only need permission to edit issue comments.
