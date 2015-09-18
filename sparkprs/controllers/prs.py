@@ -3,7 +3,7 @@ import json
 from flask import Blueprint
 from flask import Response
 
-from sparkprs import cache
+from sparkprs import cache, app
 from sparkprs.models import Issue, JIRAIssue
 
 
@@ -42,7 +42,7 @@ def search_open_prs():
         # Use the first JIRA's information to populate the "Priority" and "Issue Type" columns:
         jiras = pr.parsed_title["jiras"]
         if jiras:
-            first_jira = JIRAIssue.get_by_id("SPARK-%i" % jiras[0])
+            first_jira = JIRAIssue.get_by_id("%s-%i" % (app.config['JIRA_PROJECT'], jiras[0]))
             if first_jira:
                 d['jira_priority_name'] = first_jira.priority_name
                 d['jira_priority_icon_url'] = first_jira.priority_icon_url
