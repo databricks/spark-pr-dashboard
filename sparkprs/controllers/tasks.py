@@ -12,8 +12,8 @@ from dateutil.parser import parse as parse_datetime
 from dateutil import tz
 
 from sparkprs.models import Issue, JIRAIssue, KVS
-from sparkprs.github_api import raw_github_request, paginated_github_request, PULLS_BASE, \
-    ISSUES_BASE
+from sparkprs.github_api import raw_github_request, paginated_github_request, get_pulls_base, \
+    get_issues_base
 from sparkprs import app
 from sparkprs.jira_api import start_issue_progress, link_issue_to_pr
 
@@ -42,7 +42,7 @@ def update_github_prs():
             if link.rel == 'next':
                 fetch_and_process(link.href)
     last_update_time = KVS.get("issues_since")
-    url = ISSUES_BASE + "?sort=updated&state=all&per_page=100"
+    url = get_issues_base() + "?sort=updated&state=all&per_page=100"
     if last_update_time:
         url += "&since=%s" % last_update_time
     fetch_and_process(url)
@@ -54,7 +54,7 @@ def update_github_prs():
 def update_pr(pr_number):
     logging.debug("Updating pull request %i" % pr_number)
     pr = Issue.get_or_create(pr_number)
-    issue_response = raw_github_request(PULLS_BASE + '/%i' % pr_number,
+    issue_response = raw_github_request(get_pulls_base() + '/%i' % pr_number,
                                         oauth_token=oauth_token, etag=pr.etag)
     if issue_response is None:
         logging.debug("PR %i hasn't changed since last visit; skipping" % pr_number)
@@ -68,14 +68,16 @@ def update_pr(pr_number):
 
     for issue_number in pr.parsed_title['jiras']:
         try:
-            link_issue_to_pr("SPARK-%s" % issue_number, pr)
+            link_issue_to_pr("%s-%s" % (app.config['JIRA_PROJECT'], issue_number), pr)
         except:
-            logging.exception("Exception when linking to JIRA issue SPARK-%s" % issue_number)
+            logging.exception("Exception when linking to JIRA issue %s-%s" %
+                              (app.config['JIRA_PROJECT'], issue_number))
         try:
-            start_issue_progress("SPARK-%s" % issue_number)
+            start_issue_progress("%s-%s" % (app.config['JIRA_PROJECT'], issue_number))
         except:
             logging.exception(
-                "Exception when starting progress on JIRA issue SPARK-%s" % issue_number)
+                "Exception when starting progress on JIRA issue %s-%s" %
+                (app.config['JIRA_PROJECT'], issue_number))
 
     pr.put()  # Write our modifications back to the database
 
@@ -89,7 +91,7 @@ def update_pr(pr_number):
 @tasks.route("/github/update-pr-comments/<int:pr_number>", methods=['GET', 'POST'])
 def update_pr_comments(pr_number):
     pr = Issue.get(pr_number)
-    comments_response = paginated_github_request(ISSUES_BASE + '/%i/comments' % pr_number,
+    comments_response = paginated_github_request(get_issues_base() + '/%i/comments' % pr_number,
                                                  oauth_token=oauth_token)
     # TODO: after fixing #32, re-enable etags here: etag=self.comments_etag)
     if comments_response is None:
@@ -133,7 +135,7 @@ def update_pr_comments(pr_number):
 @tasks.route("/github/update-pr-review-comments/<int:pr_number>", methods=['GET', 'POST'])
 def update_pr_review_comments(pr_number):
     pr = Issue.get(pr_number)
-    pr_comments_response = paginated_github_request(PULLS_BASE + '/%i/comments' % pr_number,
+    pr_comments_response = paginated_github_request(get_pulls_base() + '/%i/comments' % pr_number,
                                                     oauth_token=oauth_token)
     # TODO: after fixing #32, re-enable etags here: etag=self.pr_review_comments_etag)
     if pr_comments_response is None:
@@ -148,7 +150,7 @@ def update_pr_review_comments(pr_number):
 @tasks.route("/github/update-pr-files/<int:pr_number>", methods=['GET', 'POST'])
 def update_pr_files(pr_number):
     pr = Issue.get(pr_number)
-    files_response = paginated_github_request(PULLS_BASE + "/%i/files" % pr_number,
+    files_response = paginated_github_request(get_pulls_base() + "/%i/files" % pr_number,
                                               oauth_token=oauth_token, etag=pr.files_etag)
     if files_response is None:
         return "Files for PR %i are up-to-date" % pr_number
@@ -188,7 +190,8 @@ def update_all_jiras_for_open_prs():
     prs = Issue.query(Issue.state == "open").order(-Issue.updated_at).fetch()
     jira_issues = set(itertools.chain.from_iterable(pr.parsed_title['jiras'] for pr in prs))
     for issue in jira_issues:
-        taskqueue.add(url="/tasks/update-jira-issue/SPARK-%i" % issue, queue_name='jira-issues')
+        taskqueue.add(url="/tasks/update-jira-issue/%s-%i" % (app.config['JIRA_PROJECT'], issue),
+                      queue_name='jira-issues')
     return "Queued JIRA issues for update: " + str(jira_issues)
 
 
