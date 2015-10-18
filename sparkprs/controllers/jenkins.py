@@ -31,6 +31,7 @@ def test_pr(number):
         'ghprbPullId': number,
         'ghprbActualCommit': commit,
         'ghprbTargetBranch': target_branch,
+        'ghprbPullTitle': pr.raw_title,
         # This matches the Jenkins plugin's logic; see
         # https://github.com/jenkinsci/ghprb-plugin/blob/master/src/main/java/org/jenkinsci/plugins/ghprb/GhprbTrigger.java#L146
         #

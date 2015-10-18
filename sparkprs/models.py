@@ -106,6 +106,10 @@ class Issue(ndb.Model):
         return components or ["Core"]
 
     @property
+    def raw_title(self):
+        return (self.pr_json and self.pr_json["title"]) or self.title or ""
+
+    @property
     def parsed_title(self):
         """
         Get a parsed version of this PR's title, which identifies referenced JIRAs and metadata.
@@ -114,7 +118,7 @@ class Issue(ndb.Model):
         this will return
             {'jiras': [975], 'title': 'Visual debugger of stages and callstacks', 'metadata': ''}
         """
-        return parse_pr_title((self.pr_json and self.pr_json["title"]) or self.title or "")
+        return parse_pr_title(self.raw_title)
 
     @property
     def lines_added(self):
