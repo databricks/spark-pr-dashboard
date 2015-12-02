@@ -125,8 +125,11 @@ def update_pr_comments(pr_number):
         for comment in (pr.comments_json or []):
             author = comment["user"]["login"]
             # Delete all comments from AmplabJenkins unless they are the comments that should be
-            # displayed on the Spark PR dashboard.
-            if author == "AmplabJenkins" and comment["url"] != jenkins_comment_to_preserve["url"]:
+            # displayed on the Spark PR dashboard. If we do not know which comment to preserve, then
+            # do not delete any comments from AmplabJenkins.
+            if jenkins_comment_to_preserve \
+                    and author == "AmplabJenkins" \
+                    and comment["url"] != jenkins_comment_to_preserve["url"]:
                 raw_github_request(comment["url"], oauth_token=amplabjenkins_token, method="DELETE")
             elif author == "SparkQA":
                 # Only delete build start notification comments from SparkQA and only delete them
