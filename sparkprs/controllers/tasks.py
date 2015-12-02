@@ -26,27 +26,39 @@ oauth_token = app.config['GITHUB_OAUTH_KEY']
 
 @tasks.route("/github/update-prs")
 def update_github_prs():
+    last_update_time = KVS.get("issues_since")
+    if last_update_time:
+        last_update_time = \
+            parse_datetime(last_update_time).astimezone(tz.tzutc()).replace(tzinfo=None)
+    else:
+        last_update_time = datetime.min
+
     def fetch_and_process(url):
         logging.debug("Following url %s" % url)
         response = raw_github_request(url, oauth_token=app.config['GITHUB_OAUTH_KEY'])
-        link_header = parse_link_header(response.headers.get('Link', ''))
         prs = json.loads(response.content)
         now = datetime.utcnow()
+        should_continue_loading = True
+        update_time = last_update_time
         for pr in prs:
             updated_at = \
                 parse_datetime(pr['updated_at']).astimezone(tz.tzutc()).replace(tzinfo=None)
+            update_time = max(update_time, updated_at)
+            if updated_at < last_update_time:
+                should_continue_loading = False
+                break
             is_fresh = (now - updated_at).total_seconds() < app.config['FRESHNESS_THRESHOLD']
             queue_name = ("fresh-prs" if is_fresh else "old-prs")
             taskqueue.add(url=url_for(".update_pr", pr_number=pr['number']), queue_name=queue_name)
-        for link in link_header.links:
-            if link.rel == 'next':
-                fetch_and_process(link.href)
-    last_update_time = KVS.get("issues_since")
-    url = get_issues_base() + "?sort=updated&state=all&per_page=100"
-    if last_update_time:
-        url += "&since=%s" % last_update_time
-    fetch_and_process(url)
-    KVS.put('issues_since', datetime.now().strftime("%Y-%m-%dT%H:%M:%SZ"))
+        if should_continue_loading:
+            link_header = parse_link_header(response.headers.get('Link', ''))
+            for link in link_header.links:
+                if link.rel == 'next':
+                    fetch_and_process(link.href)
+        return update_time
+    update_time = \
+        fetch_and_process(get_pulls_base() + "?sort=updated&state=all&direction=desc&per_page=100")
+    KVS.put('issues_since', update_time.strftime("%Y-%m-%dT%H:%M:%SZ"))
     return "Done fetching updated GitHub issues"
 
 
