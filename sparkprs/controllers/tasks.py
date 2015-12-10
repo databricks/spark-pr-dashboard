@@ -10,6 +10,7 @@ import feedparser
 from link_header import parse as parse_link_header
 from dateutil.parser import parse as parse_datetime
 from dateutil import tz
+from more_itertools import chunked
 
 from sparkprs.models import Issue, JIRAIssue, KVS
 from sparkprs.github_api import raw_github_request, paginated_github_request, get_pulls_base, \
@@ -24,6 +25,32 @@ tasks = Blueprint('tasks', __name__)
 oauth_token = app.config['GITHUB_OAUTH_KEY']
 
 
+@tasks.route("/github/backfill-prs")
+def backfill_prs():
+    """
+    This method attempts to update every PR ever opened against the repository.
+    As a result, this method should only be invoked by admins when trying to bootstrap a new
+    deployment of the PR board.
+    """
+    # Determine the number of PRs:
+    url = get_pulls_base() + "?sort=created&state=all&direction=desc"
+    response = raw_github_request(url, oauth_token=oauth_token)
+    latest_prs = json.loads(response.content)
+    latest_pr_number = int(latest_prs[0]['number'])
+    queue = taskqueue.Queue('old-prs')
+    update_tasks = []
+    for num in reversed(xrange(1, latest_pr_number + 1)):
+        update_tasks.append(taskqueue.Task(url=url_for(".update_pr", pr_number=num)))
+    # Can only enqueue up to 100 tasks per API call
+    async_call_results = []
+    for group_of_tasks in chunked(update_tasks, 100):
+        async_call_results.append(queue.add_async(group_of_tasks))
+    # Block until the async calls are finished:
+    for r in async_call_results:
+        r.get_result()
+    return "Enqueued tasks to backfill %i PRs" % latest_pr_number
+
+
 @tasks.route("/github/update-prs")
 def update_github_prs():
     last_update_time = KVS.get("issues_since")
@@ -31,11 +58,16 @@ def update_github_prs():
         last_update_time = \
             parse_datetime(last_update_time).astimezone(tz.tzutc()).replace(tzinfo=None)
     else:
+        # If no update has ever run successfully, store "now" as the watermark. If this update
+        # task fails (because there are too many old PRs to load / backfill) then there's a chance
+        # that this initial timestamp won't be the true watermark. If we are trying to bulk-load
+        # old data then this should be done by calling /github/backfill-prs instead.
         last_update_time = datetime.min
+        KVS.put('issues_since', datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ"))
 
     def fetch_and_process(url):
         logging.debug("Following url %s" % url)
-        response = raw_github_request(url, oauth_token=app.config['GITHUB_OAUTH_KEY'])
+        response = raw_github_request(url, oauth_token=oauth_token)
         prs = json.loads(response.content)
         now = datetime.utcnow()
         should_continue_loading = True
