@@ -32,6 +32,8 @@ Initially, the dashboard will be empty because the development appserver doesn't
 
 If you'd rather generate your own datastore, configure `settings.cfg` with proper GitHub API keys, then browse to [http://localhost:8000/cron](http://localhost:8000/cron) and hit "Run now" to manually trigger the cron job that refreshes pull requests.
 
+In order to backfill the datastore with old pull requests, visit `/tasks/github/backfill-prs` and log in with AppEngine app admin credentials. This will enqueue update tasks for every pull request ever opened against the repository, using the slower `old-prs` task queue to avoid exceeding the GitHub API rate limit.
+
 ### Front-end development
 
 The front-end UI is implemented as a single-page web app using the [React.js](https://facebook.github.io/react/) library.  The majority of UI components are written in React's [JSX](https://facebook.github.io/react/docs/jsx-in-depth.html) Javascript dialect; these files have `.jsx` extensions.  These JSX files are converted into plain Javascript using a [Grunt](http://gruntjs.com/) task.
