@@ -244,7 +244,6 @@ class JIRAIssue(ndb.Model):
 
     @property
     def target_versions(self):
-        print self.issue_json["fields"]['customfield_12310320']
         versions = self.issue_json["fields"]['customfield_12310320']
         if versions:
             return natsorted([v['name'] for v in versions], reverse=True)
