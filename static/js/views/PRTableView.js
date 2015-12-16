@@ -247,7 +247,7 @@ define([
         'JIRAs': function(row) { return row.props.pr.parsed_title.jiras; },
         'Priority': function(row) { return row.props.pr.jira_priority_name; },
         'Issue Type': function(row) { return row.props.pr.jira_issuetype_name; },
-        'Target Versions': function(row) { return row.props.pr.jira_target_versions || ''; },
+        'Target Versions': function(row) { return row.props.pr.jira_target_versions || 'A'; },
         'Title': function(row) { return row.props.pr.parsed_title.title.toLowerCase(); },
         'Author': function(row) { return row.props.pr.user.toLowerCase(); },
         'Shepherd': function(row) { return row.props.pr.jira_shepherd_display_name || ''; },

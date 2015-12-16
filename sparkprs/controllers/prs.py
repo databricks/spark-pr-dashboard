@@ -58,7 +58,7 @@ def search_open_prs():
                 if jira:
                     target_versions.update(jira.target_versions)
             if target_versions:
-                d['jira_target_versions'] = natsorted(target_versions, reverse=True)
+                d['jira_target_versions'] = natsorted(target_versions)
         json_dicts.append(d)
     response = Response(json.dumps(json_dicts), mimetype='application/json')
     return response
