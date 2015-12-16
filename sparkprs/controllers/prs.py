@@ -2,6 +2,7 @@ import json
 
 from flask import Blueprint
 from flask import Response
+from natsort import natsorted
 
 from sparkprs import cache, app
 from sparkprs.models import Issue, JIRAIssue
@@ -49,7 +50,15 @@ def search_open_prs():
                 d['jira_issuetype_name'] = first_jira.issuetype_name
                 d['jira_issuetype_icon_url'] = first_jira.issuetype_icon_url
                 d['jira_shepherd_display_name'] = first_jira.shepherd_display_name
-                d['jira_target_versions'] = first_jira.target_versions
+            # If a pull request is linked against multiple JIRA issues, then the target
+            # versions should be union of the individual issues' target versions:
+            target_versions = set()
+            for jira_number in jiras:
+                jira = JIRAIssue.get_by_id("%s-%i" % (app.config['JIRA_PROJECT'], jira_number))
+                if jira:
+                    target_versions.update(jira.target_versions)
+            if target_versions:
+                d['jira_target_versions'] = natsorted(target_versions, reverse=True)
         json_dicts.append(d)
     response = Response(json.dumps(json_dicts), mimetype='application/json')
     return response

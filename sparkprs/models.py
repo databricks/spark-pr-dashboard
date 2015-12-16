@@ -3,7 +3,6 @@ from google.appengine.api import urlfetch
 from collections import defaultdict
 import json
 import logging
-from natsort import natsorted
 import re
 from sparkprs import app
 from sparkprs.utils import parse_pr_title, is_jenkins_command, compute_last_jenkins_outcome
@@ -246,7 +245,9 @@ class JIRAIssue(ndb.Model):
     def target_versions(self):
         versions = self.issue_json["fields"]['customfield_12310320']
         if versions:
-            return natsorted([v['name'] for v in versions], reverse=True)
+            return [v['name'] for v in versions]
+        else:
+            return []
 
     @classmethod
     def get_or_create(cls, issue_id):
