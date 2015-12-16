@@ -241,6 +241,14 @@ class JIRAIssue(ndb.Model):
         if shepherd:
             return shepherd['displayName']
 
+    @property
+    def target_versions(self):
+        versions = self.issue_json["fields"]['customfield_12310320']
+        if versions:
+            return [v['name'] for v in versions]
+        else:
+            return []
+
     @classmethod
     def get_or_create(cls, issue_id):
         key = str(ndb.Key("JIRAIssue", issue_id).id())
