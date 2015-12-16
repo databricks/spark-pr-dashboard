@@ -120,6 +120,11 @@ define([
         });
         var jiraLinks = React.createElement("ul", {className: "jira-links-list"}, jiraLinkRows);
 
+        var targetVersionRows =  _.map(pr.jira_target_versions, function(version) {
+          return (React.createElement("li", null, version));
+        });
+        var targetVersions = React.createElement("ul", {className: "jira-links-list"}, targetVersionRows);
+
         var commenters = _.map(pr.commenters, function(comment) {
           return (
             React.createElement(Commenter, {
@@ -195,6 +200,9 @@ define([
                 alt: pr.jira_issuetype_name})
             ), 
             React.createElement("td", null, 
+              targetVersions
+            ), 
+            React.createElement("td", null, 
               React.createElement("a", {href: pullLink, target: "_blank"}, 
                 pr.parsed_title.metadata + pr.parsed_title.title
               )
@@ -239,6 +247,7 @@ define([
         'JIRAs': function(row) { return row.props.pr.parsed_title.jiras; },
         'Priority': function(row) { return row.props.pr.jira_priority_name; },
         'Issue Type': function(row) { return row.props.pr.jira_issuetype_name; },
+        'Target Versions': function(row) { return row.props.pr.jira_target_versions || ''; },
         'Title': function(row) { return row.props.pr.parsed_title.title.toLowerCase(); },
         'Author': function(row) { return row.props.pr.user.toLowerCase(); },
         'Shepherd': function(row) { return row.props.pr.jira_shepherd_display_name || ''; },
@@ -255,6 +264,7 @@ define([
           "JIRAs",
           "Priority",
           "Issue Type",
+          "Target Versions",
           "Title",
           "Author",
           "Shepherd",

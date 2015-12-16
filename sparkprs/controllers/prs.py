@@ -49,6 +49,7 @@ def search_open_prs():
                 d['jira_issuetype_name'] = first_jira.issuetype_name
                 d['jira_issuetype_icon_url'] = first_jira.issuetype_icon_url
                 d['jira_shepherd_display_name'] = first_jira.shepherd_display_name
+                d['jira_target_versions'] = first_jira.target_versions
         json_dicts.append(d)
     response = Response(json.dumps(json_dicts), mimetype='application/json')
     return response
