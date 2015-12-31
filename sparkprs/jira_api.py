@@ -2,11 +2,17 @@
 Functions for integrating with JIRA.
 """
 import logging
+
+from google.appengine.api import urlfetch
 import jira.client
+
 from sparkprs import app
 
 
 def get_jira_client():
+    # Bump up the default fetch deadline.
+    # This setting is thread-specific, which is why we set it here.
+    urlfetch.set_default_fetch_deadline(60)
     return jira.client.JIRA({'server': app.config['JIRA_API_BASE']},
                             basic_auth=(app.config['JIRA_USERNAME'],
                                         app.config['JIRA_PASSWORD']))
