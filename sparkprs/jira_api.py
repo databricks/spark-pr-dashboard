@@ -27,8 +27,8 @@ def start_issue_progress(issue):
         return
     elif status not in ("Open", "Reopened"):
         logging.warn(("Could not start progress on JIRA issue {j}. "
-                     "It's currently in an '{s}' state. "
-                     "Issues must be in an 'Open' or 'Reopened' state.").format(j=issue, s=status))
+                      "It's currently in an '{s}' state. "
+                      "Issues must be in an 'Open' or 'Reopened' state.").format(j=issue, s=status))
         return
 
     try:
