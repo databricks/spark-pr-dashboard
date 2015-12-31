@@ -221,11 +221,15 @@ class JIRAIssue(ndb.Model):
 
     @property
     def priority_name(self):
-        return self.issue_json["fields"]['priority']['name']
+        # Some JIRAs which were imported from the old Spark JIRA (before it was an Apache project)
+        # seem to have a null priority field value, so we need to guard against that here:
+        return (self.issue_json["fields"].get('priority') or {}).get('name')
 
     @property
     def priority_icon_url(self):
-        return self.issue_json["fields"]['priority']['iconUrl']
+        # Some JIRAs which were imported from the old Spark JIRA (before it was an Apache project)
+        # seem to have a null priority field value, so we need to guard against that here:
+        return (self.issue_json["fields"].get('priority') or {}).get('iconUrl')
 
     @property
     def issuetype_name(self):
