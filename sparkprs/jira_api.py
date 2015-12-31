@@ -16,7 +16,7 @@ def start_issue_progress(issue):
     """
     Given an issue key, e.g. SPARK-6481, mark the issue "In Progress".
 
-    This will only happen if the issue's initial state is "Open".
+    This will only happen if the issue's initial state is "Open" or "Reopened".
     """
     jira_client = get_jira_client()
     issue_info = jira_client.issue(issue)
@@ -25,10 +25,10 @@ def start_issue_progress(issue):
 
     if status == "In Progress":
         return
-    elif status != "Open":
-        logging.warn("Could not start progress on JIRA issue {j}. "
-                     "It's currently in an '{s}' state. Issues must be in an 'Open' state.".format(
-                         j=issue, s=status))
+    elif status not in ("Open", "Reopened"):
+        logging.warn(("Could not start progress on JIRA issue {j}. "
+                     "It's currently in an '{s}' state. "
+                     "Issues must be in an 'Open' or 'Reopened' state.").format(j=issue, s=status))
         return
 
     try:
