@@ -169,8 +169,11 @@ class Issue(ndb.Model):
         for comment in all_comments:
             if is_jenkins_command(comment['body']):
                 continue  # Skip comments that solely consist of Jenkins commands
-            user = comment['user']['login']
-            if user not in excluded_users:
+            # If a user deletes their GitHub account, the 'user' field of their comments seems to
+            # become 'null' in the JSON (although it points to the user info for the 'ghost' user
+            # in other contexts). As a result, we have to guard against that here:
+            user = (comment.get('user') or {}).get('login')
+            if user is not None and user not in excluded_users:
                 user_dict = res[user]
                 user_dict['url'] = comment['html_url']
                 user_dict['avatar'] = comment['user']['avatar_url']
