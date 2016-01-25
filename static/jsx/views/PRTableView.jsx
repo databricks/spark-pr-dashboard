@@ -100,7 +100,7 @@ define([
             onClick={this.onClick}
             className="btn btn-default btn-xs">
             <span className="glyphicon glyphicon-refresh"></span>
-            Test with Jenkins
+            Test
           </button>
         );
       }
@@ -181,6 +181,7 @@ define([
           </td>;
         return (
           <tr>
+            {this.props.showJenkinsButtons ? toolsCell : ""}
             <td>
               <a href={pullLink} target="_blank">
               {pr.number}
@@ -231,7 +232,6 @@ define([
             <td>
               {updatedCell}
             </td>
-            {this.props.showJenkinsButtons ? toolsCell : ""}
           </tr>
         );
       }
@@ -275,7 +275,7 @@ define([
           "Updated"
         ];
         if (this.props.showJenkinsButtons) {
-          columNames.push("Tools");
+          columNames.unshift("Tools");
         }
         return columNames;
       },

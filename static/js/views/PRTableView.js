@@ -100,7 +100,7 @@ define([
             onClick: this.onClick, 
             className: "btn btn-default btn-xs"}, 
             React.createElement("span", {className: "glyphicon glyphicon-refresh"}), 
-            "Test with Jenkins"
+            "Test"
           )
         );
       }
@@ -181,6 +181,7 @@ define([
           );
         return (
           React.createElement("tr", null, 
+            this.props.showJenkinsButtons ? toolsCell : "", 
             React.createElement("td", null, 
               React.createElement("a", {href: pullLink, target: "_blank"}, 
               pr.number
@@ -230,8 +231,7 @@ define([
             ), 
             React.createElement("td", null, 
               updatedCell
-            ), 
-            this.props.showJenkinsButtons ? toolsCell : ""
+            )
           )
         );
       }
@@ -275,7 +275,7 @@ define([
           "Updated"
         ];
         if (this.props.showJenkinsButtons) {
-          columNames.push("Tools");
+          columNames.unshift("Tools");
         }
         return columNames;
       },
