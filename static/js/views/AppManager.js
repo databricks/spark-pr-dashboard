@@ -205,11 +205,6 @@ define([
                 React.createElement("div", {className: "pull-right"}, 
                   githubUser, 
                   React.createElement(RefreshButton, {onClick: this.refreshPrs, enabled: !this.state.refreshInProgress}), 
-                  React.createElement("a", {href: "https://github.com/databricks/spark-pr-dashboard", 
-                     className: "btn btn-default navbar-btn"}, 
-                    React.createElement("span", {className: "octicon octicon-mark-github"}), 
-                      "Fork me on GitHub"
-                  ), 
                   loginButton
                 )
               )

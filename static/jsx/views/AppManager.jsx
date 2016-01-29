@@ -205,11 +205,6 @@ define([
                 <div className="pull-right">
                   {githubUser}
                   <RefreshButton onClick={this.refreshPrs} enabled={!this.state.refreshInProgress}/>
-                  <a href="https://github.com/databricks/spark-pr-dashboard"
-                     className="btn btn-default navbar-btn">
-                    <span className="octicon octicon-mark-github"></span>
-                      Fork me on GitHub
-                  </a>
                   {loginButton}
                 </div>
               </div>
