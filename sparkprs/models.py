@@ -244,13 +244,13 @@ class JIRAIssue(ndb.Model):
 
     @property
     def shepherd_display_name(self):
-        shepherd = self.issue_json["fields"]['customfield_12311620']
+        shepherd = self.issue_json["fields"].get('customfield_12311620')
         if shepherd:
             return shepherd['displayName']
 
     @property
     def target_versions(self):
-        versions = self.issue_json["fields"]['customfield_12310320']
+        versions = self.issue_json["fields"].get('customfield_12310320')
         if versions:
             return [v['name'] for v in versions]
         else:
