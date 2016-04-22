@@ -1,4 +1,6 @@
 {
+  "esprima" : "esprima-fb",
+
   "requireCurlyBraces": [
     "if",
     "else",
@@ -97,7 +99,7 @@
 
   "requireCapitalizedConstructors": true,
 
-  "validateJSDoc": {
+  "jsDoc": {
     "checkParamNames": true,
     "checkRedundantParams": true
   }

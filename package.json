@@ -7,6 +7,8 @@
     "grunt-jscs": "^2.8.0",
     "grunt-jsxhint": "^0.6.0",
     "grunt-react": "^0.12.2",
-    "react-tools": "^0.13.3"
+    "react-tools": "^0.13.3",
+    "esprima": "^2.7.2",
+    "esprima-fb": "^15001.1001.0-dev-harmony-fb"
   }
 }
