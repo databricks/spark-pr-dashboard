@@ -41,8 +41,7 @@ module.exports = function(grunt) {
 
   // Code quality tool for jsx and js (safe to replace JSHint)
   grunt.loadNpmTasks("grunt-jsxhint");
-  // Use the JSX code style checker, since it is aware of both .js and jsx files
-  grunt.loadNpmTasks("grunt-jsxcs");
+  grunt.loadNpmTasks("grunt-jscs");
 
   grunt.loadNpmTasks('grunt-contrib-watch');
   grunt.loadNpmTasks('grunt-react');
