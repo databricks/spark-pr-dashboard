@@ -1,5 +1,7 @@
+import google.appengine.ext.ndb as ndb
 import json
 import logging
+import datetime
 
 from flask import Blueprint
 from flask import Response
@@ -16,6 +18,17 @@ prs = Blueprint('prs', __name__)
 @cache.cached(timeout=60)
 def search_open_prs():
     prs = Issue.query(Issue.state == "open").order(-Issue.updated_at).fetch()
+    return search_prs(prs)
+
+@prs.route('/search-stale-prs')
+@cache.cached(timeout=60)
+def search_stale_prs():
+    issueQuery = ndb.AND(Issue.state == "open",
+                         Issue.updated_at < datetime.datetime.today() - datetime.timedelta(days=30))
+    stalePrs = Issue.query(issueQuery).order(-Issue.updated_at).fetch()
+    return search_prs(stalePrs)
+
+def search_prs(prs):
     json_dicts = []
     for pr in prs:
         try:

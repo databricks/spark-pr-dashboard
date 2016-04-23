@@ -75,6 +75,7 @@ define([
       routes: {
         '/': 'openPrs',
         '/open-prs': 'openPrs',
+        '/stale-prs': 'staleOpenPrs',
         '/users/': 'users',
         '/users/:username*': 'userDashboard'
       },
@@ -95,6 +96,14 @@ define([
           );
       },
 
+      staleOpenPrs: function() {
+        return (
+          React.createElement(Dashboard, {
+            prs: this.state.stalePrs,
+            showJenkinsButtons: this.userCanUseJenkins()})
+          );
+      },
+
       users: function() {
         return (React.createElement(UsersPage, {prs: this.state.prs}));
       },
@@ -108,7 +117,7 @@ define([
       },
 
       getInitialState: function() {
-        return {prs: [], user: null, refreshInProgress: false};
+        return {prs: [], stalePrs: [], user: null, refreshInProgress: false};
       },
 
       refreshPrs: function() {
@@ -128,6 +137,28 @@ define([
         });
       },
 
+      refreshStalePrs: function() {
+        var _this = this;
+        this.setState({refreshInProgress: true});
+        console.log("Refreshing stale pull requests");
+        $.ajax({
+          url: '/search-stale-prs',
+          dataType: 'json',
+          success: function(stalePrs) {
+            _this.setState({stalePrs: stalePrs, refreshInProgress: false});
+            console.log("Done refreshing stale pull requests; stalePrs.length=" + stalePrs.length);
+          },
+          error: function() {
+            _this.setState({refreshInProgress: false});
+          }
+        });
+      },
+
+      refreshAllPrs: function() {
+        this.refreshPrs()
+        this.refreshStalePrs()
+      },
+
       refreshUserInfo: function() {
         var _this = this;
         $.ajax({
@@ -142,10 +173,10 @@ define([
       },
 
       componentDidMount: function() {
-        this.refreshPrs();
+        this.refreshAllPrs();
         this.refreshUserInfo();
         // Refresh every 5 minutes:
-        this.refreshInterval = window.setInterval(this.refreshPrs, 1000 * 60 * 5);
+        this.refreshInterval = window.setInterval(this.refreshAllPrs, 1000 * 60 * 5);
       },
 
       componentWillUnmount: function() {
@@ -158,6 +189,12 @@ define([
         var countPrsBadge = (
           React.createElement("span", {className: "badge"}, 
             this.state.prs.length
+          )
+        );
+
+        var countStalePrsBadge = (
+          React.createElement("span", {className: "badge"},
+            this.state.stalePrs.length
           )
         );
 
@@ -194,8 +231,13 @@ define([
                     React.createElement("a", {href: "/open-prs"}, 
                       "Open PRs ", countPrsBadge
                     )
-                  ), 
-                  React.createElement("li", {className: pathname.indexOf('/users') === 0 ? "active" : ""}, 
+                  ),
+                  React.createElement("li", {className: (pathname === '/stale-prs') ? "active" : ""},
+                    React.createElement("a", {href: "/stale-prs"},
+                      "Stale PRs ", countStalePrsBadge
+                    )
+                  ),
+                  React.createElement("li", {className: pathname.indexOf('/users') === 0 ? "active" : ""},
                     React.createElement("a", {href: "/users"}, 
                     "Users"
                     )
@@ -204,7 +246,7 @@ define([
                 ), 
                 React.createElement("div", {className: "pull-right"}, 
                   githubUser, 
-                  React.createElement(RefreshButton, {onClick: this.refreshPrs, enabled: !this.state.refreshInProgress}), 
+                  React.createElement(RefreshButton, {onClick: this.refreshAllPrs, enabled: !this.state.refreshInProgress}),
                   loginButton
                 )
               )
