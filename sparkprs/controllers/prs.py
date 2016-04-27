@@ -20,6 +20,7 @@ def search_open_prs():
     prs = Issue.query(Issue.state == "open").order(-Issue.updated_at).fetch()
     return search_prs(prs)
 
+
 @prs.route('/search-stale-prs')
 @cache.cached(timeout=60)
 def search_stale_prs():
@@ -27,6 +28,7 @@ def search_stale_prs():
                          Issue.updated_at < datetime.datetime.today() - datetime.timedelta(days=30))
     stalePrs = Issue.query(issueQuery).order(-Issue.updated_at).fetch()
     return search_prs(stalePrs)
+
 
 def search_prs(prs):
     json_dicts = []
