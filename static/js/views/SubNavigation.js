@@ -9,7 +9,12 @@ define([
       mixins: [UrlMixin],
       onClick: function(event) {
         var component = this.props.component;
-        this.pushAnchor(component);
+        var hash = window.location.hash.split(/#|&/);
+        if (hash.length === 3) {
+          this.pushAnchor(component, hash[1]);
+        } else {
+          this.pushAnchor(component);
+        }
       },
 
       render: function() {

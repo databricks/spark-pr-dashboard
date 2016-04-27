@@ -23,6 +23,9 @@ GITHUB_PROJECT='apache/spark'
 # processing rate.
 FRESHNESS_THRESHOLD = 60 * 60 * 24
 
+# The number of days a PR must have last been updated to be considered stale
+DAYS_STALE = 30
+
 # Key used to sign cookies; generate one randomly using os.urandom(24)
 SECRET_KEY = ''
 

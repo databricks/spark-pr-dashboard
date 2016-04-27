@@ -66,7 +66,7 @@ define([
       },
 
       _checkTabAvailability: function(prsByComponent) {
-        var hash = window.location.hash.split('#');
+        var hash = window.location.hash.split(/#|&/);
         var anchor = hash.pop();
 
         for (var component in prsByComponent) {

@@ -4,10 +4,11 @@ define([
     'jquery',
     'underscore',
     'views/Dashboard',
+    'views/StaleDashboard',
     'views/UsersPage',
     'views/UserDashboard'
   ],
-  function(React, Router, $, _, Dashboard, UsersPage, UserDashboard) {
+  function(React, Router, $, _, Dashboard, StaleDashboard, UsersPage, UserDashboard) {
     "use strict";
 
     var RouterMixin = Router.RouterMixin;
@@ -98,8 +99,8 @@ define([
 
       staleOpenPrs: function() {
         return (
-          React.createElement(Dashboard, {
-            prs: this.state.stalePrs,
+          React.createElement(StaleDashboard, {
+            prs: this.state.stalePrs, 
             showJenkinsButtons: this.userCanUseJenkins()})
           );
       },
@@ -135,6 +136,7 @@ define([
             _this.setState({refreshInProgress: false});
           }
         });
+        this.refreshStalePrs();
       },
 
       refreshStalePrs: function() {
@@ -154,11 +156,6 @@ define([
         });
       },
 
-      refreshAllPrs: function() {
-        this.refreshPrs()
-        this.refreshStalePrs()
-      },
-
       refreshUserInfo: function() {
         var _this = this;
         $.ajax({
@@ -173,10 +170,10 @@ define([
       },
 
       componentDidMount: function() {
-        this.refreshAllPrs();
+        this.refreshPrs();
         this.refreshUserInfo();
         // Refresh every 5 minutes:
-        this.refreshInterval = window.setInterval(this.refreshAllPrs, 1000 * 60 * 5);
+        this.refreshInterval = window.setInterval(this.refreshPrs, 1000 * 60 * 5);
       },
 
       componentWillUnmount: function() {
@@ -193,7 +190,7 @@ define([
         );
 
         var countStalePrsBadge = (
-          React.createElement("span", {className: "badge"},
+          React.createElement("span", {className: "badge"}, 
             this.state.stalePrs.length
           )
         );
@@ -231,13 +228,13 @@ define([
                     React.createElement("a", {href: "/open-prs"}, 
                       "Open PRs ", countPrsBadge
                     )
-                  ),
-                  React.createElement("li", {className: (pathname === '/stale-prs') ? "active" : ""},
-                    React.createElement("a", {href: "/stale-prs"},
+                  ), 
+                  React.createElement("li", {className: (pathname === '/stale-prs') ? "active" : ""}, 
+                    React.createElement("a", {href: "/stale-prs"}, 
                       "Stale PRs ", countStalePrsBadge
                     )
-                  ),
-                  React.createElement("li", {className: pathname.indexOf('/users') === 0 ? "active" : ""},
+                  ), 
+                  React.createElement("li", {className: pathname.indexOf('/users') === 0 ? "active" : ""}, 
                     React.createElement("a", {href: "/users"}, 
                     "Users"
                     )
@@ -246,7 +243,7 @@ define([
                 ), 
                 React.createElement("div", {className: "pull-right"}, 
                   githubUser, 
-                  React.createElement(RefreshButton, {onClick: this.refreshAllPrs, enabled: !this.state.refreshInProgress}),
+                  React.createElement(RefreshButton, {onClick: this.refreshPrs, enabled: !this.state.refreshInProgress}), 
                   loginButton
                 )
               )
