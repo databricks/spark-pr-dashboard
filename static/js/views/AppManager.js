@@ -4,10 +4,11 @@ define([
     'jquery',
     'underscore',
     'views/Dashboard',
+    'views/StaleDashboard',
     'views/UsersPage',
     'views/UserDashboard'
   ],
-  function(React, Router, $, _, Dashboard, UsersPage, UserDashboard) {
+  function(React, Router, $, _, Dashboard, StaleDashboard, UsersPage, UserDashboard) {
     "use strict";
 
     var RouterMixin = Router.RouterMixin;
@@ -75,6 +76,7 @@ define([
       routes: {
         '/': 'openPrs',
         '/open-prs': 'openPrs',
+        '/stale-prs': 'staleOpenPrs',
         '/users/': 'users',
         '/users/:username*': 'userDashboard'
       },
@@ -95,6 +97,14 @@ define([
           );
       },
 
+      staleOpenPrs: function() {
+        return (
+          React.createElement(StaleDashboard, {
+            prs: this.state.stalePrs, 
+            showJenkinsButtons: this.userCanUseJenkins()})
+          );
+      },
+
       users: function() {
         return (React.createElement(UsersPage, {prs: this.state.prs}));
       },
@@ -108,7 +118,7 @@ define([
       },
 
       getInitialState: function() {
-        return {prs: [], user: null, refreshInProgress: false};
+        return {prs: [], stalePrs: [], user: null, refreshInProgress: false};
       },
 
       refreshPrs: function() {
@@ -121,6 +131,24 @@ define([
           success: function(prs) {
             _this.setState({prs: prs, refreshInProgress: false});
             console.log("Done refreshing pull requests; prs.length=" + prs.length);
+          },
+          error: function() {
+            _this.setState({refreshInProgress: false});
+          }
+        });
+        this.refreshStalePrs();
+      },
+
+      refreshStalePrs: function() {
+        var _this = this;
+        this.setState({refreshInProgress: true});
+        console.log("Refreshing stale pull requests");
+        $.ajax({
+          url: '/search-stale-prs',
+          dataType: 'json',
+          success: function(stalePrs) {
+            _this.setState({stalePrs: stalePrs, refreshInProgress: false});
+            console.log("Done refreshing stale pull requests; stalePrs.length=" + stalePrs.length);
           },
           error: function() {
             _this.setState({refreshInProgress: false});
@@ -161,6 +189,12 @@ define([
           )
         );
 
+        var countStalePrsBadge = (
+          React.createElement("span", {className: "badge"}, 
+            this.state.stalePrs.length
+          )
+        );
+
         var adminTab = (
           React.createElement("li", {className: pathname === '/admin' ? "active" : ""}, 
             React.createElement("a", {href: "/admin"}, 
@@ -193,6 +227,11 @@ define([
                   React.createElement("li", {className: (pathname === '/open-prs' || pathname === '/') ? "active" : ""}, 
                     React.createElement("a", {href: "/open-prs"}, 
                       "Open PRs ", countPrsBadge
+                    )
+                  ), 
+                  React.createElement("li", {className: (pathname === '/stale-prs') ? "active" : ""}, 
+                    React.createElement("a", {href: "/stale-prs"}, 
+                      "Stale PRs ", countStalePrsBadge
                     )
                   ), 
                   React.createElement("li", {className: pathname.indexOf('/users') === 0 ? "active" : ""}, 

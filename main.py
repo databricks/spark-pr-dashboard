@@ -16,6 +16,7 @@ app.register_blueprint(admin, url_prefix='/admin')
 
 @app.route('/')
 @app.route('/open-prs')
+@app.route('/stale-prs')
 @app.route('/users')
 @app.route('/users/<username>')
 def main(username=None):
