@@ -54,16 +54,17 @@ def backfill_prs():
 @tasks.route("/github/clean-prs")
 def clean_deleted_prs():
     prs = Issue.query(Issue.state == "open")
-    pr_list = ""
     for pr in prs:
-        try:
-            raw_github_request(get_pulls_base() + '/%i' % pr.number,
-                               oauth_token=oauth_token, etag=pr.etag)
-        except:
-            pr_list = pr_list + " %i" % pr.number
-            pr.state = "deleted"
-            pr.put()
-    return "Found and removed the following deleted pull requests:" + pr_list
+        taskqueue.add(url="/tasks/github/clean-pr/%i" % pr.number, queue_name='old-prs')
+    return "Enqueued tasks to removed deleted PRs"
+
+
+@tasks.route("/github/clean-pr/<int:pr_number>", methods=['GET', 'POST'])
+def clean_deleted_pr(pr_number):
+    logging.debug("Checking pull request %i" % pr_number)
+    pr = Issue.get(pr_number)
+    pr.refresh()
+    return "Done cleaning PR %i" % pr.number
 
 
 @tasks.route("/github/update-prs")
