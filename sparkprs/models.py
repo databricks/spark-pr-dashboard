@@ -6,10 +6,6 @@ import logging
 import re
 from sparkprs import app
 from sparkprs.utils import parse_pr_title, is_jenkins_command, compute_last_jenkins_outcome
-from sparkprs.github_api import raw_github_request, get_pulls_base
-
-
-oauth_token = app.config['GITHUB_OAUTH_KEY']
 
 
 class KVS(ndb.Model):
@@ -192,18 +188,6 @@ class Issue(ndb.Model):
                     (user_dict.get('asked_to_close') or
                         Issue.ASKED_TO_CLOSE_REGEX.search(comment['body']) is not None)
         return sorted(res.items(), key=lambda x: x[1]['date'], reverse=True)
-
-    def refresh(self):
-        try:
-            raw_github_request(get_pulls_base() + '/%i' % self.number,
-                               oauth_token=oauth_token, etag=self.etag)
-        except Exception as e:
-            if "404" in str(e):
-                logging.debug("Deleted pull request found: %i" % self.number)
-                self.state = "deleted"
-                self.put()
-            else:
-                raise
 
     @classmethod
     def get_or_create(cls, number):

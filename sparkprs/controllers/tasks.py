@@ -1,4 +1,5 @@
 from datetime import datetime
+from urllib2 import HTTPError
 import itertools
 import json
 import logging
@@ -51,20 +52,12 @@ def backfill_prs():
     return "Enqueued tasks to backfill %i PRs" % latest_pr_number
 
 
-@tasks.route("/github/clean-prs")
-def clean_deleted_prs():
+@tasks.route("/github/refresh-all-prs")
+def refresh_all_prs():
     prs = Issue.query(Issue.state == "open")
     for pr in prs:
-        taskqueue.add(url="/tasks/github/clean-pr/%i" % pr.number, queue_name='old-prs')
-    return "Enqueued tasks to removed deleted PRs"
-
-
-@tasks.route("/github/clean-pr/<int:pr_number>", methods=['GET', 'POST'])
-def clean_deleted_pr(pr_number):
-    logging.debug("Checking pull request %i" % pr_number)
-    pr = Issue.get(pr_number)
-    pr.refresh()
-    return "Done cleaning PR %i" % pr.number
+        taskqueue.add(url=url_for(".update_pr", pr_number=pr.number), queue_name='old-prs')
+    return "Enqueued tasks to refresh all open PRs"
 
 
 @tasks.route("/github/update-prs")
@@ -114,8 +107,17 @@ def update_github_prs():
 def update_pr(pr_number):
     logging.debug("Updating pull request %i" % pr_number)
     pr = Issue.get_or_create(pr_number)
-    issue_response = raw_github_request(get_pulls_base() + '/%i' % pr_number,
-                                        oauth_token=oauth_token, etag=pr.etag)
+    try:
+        issue_response = raw_github_request(get_pulls_base() + '/%i' % pr_number,
+                                            oauth_token=oauth_token, etag=pr.etag)
+    except HTTPError as e:
+        if e.code == 404:
+            logging.debug("Pull request %i has been deleted" % pr_number)
+            pr.state = "deleted"
+            pr.put()
+            return "Done updating pull request %i (PR deleted)" % pr_number
+        else:
+            raise
     if issue_response is None:
         logging.debug("PR %i hasn't changed since last visit; skipping" % pr_number)
         return "Done updating pull request %i (nothing changed)" % pr_number
