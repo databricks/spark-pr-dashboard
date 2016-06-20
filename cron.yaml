@@ -5,3 +5,6 @@ cron:
 - description: update JIRA issues
   url: /tasks/update-jira-issues
   schedule: every 5 minutes
+- description: update all open Github pull requests
+  url: /tasks/github/refresh-all-prs
+  schedule: every 24 hours

@@ -1,5 +1,6 @@
 from google.appengine.api import urlfetch
 from link_header import parse as parse_link_header
+from urllib2 import HTTPError
 import logging
 import json
 
@@ -35,6 +36,8 @@ def raw_github_request(url, oauth_token=None, etag=None, method="GET"):
         return response
     elif response.status_code == 200:
         return response
+    elif response.status_code == 404:
+        raise HTTPError(url, response.status_code, "404 Not Found", response.headers, None)
     else:
         raise Exception("Unexpected status code: %i\n%s" % (response.status_code, response.content))
 
