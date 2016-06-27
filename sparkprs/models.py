@@ -44,6 +44,22 @@ class User(ndb.Model):
             return False
 
 
+class Contributors(ndb.Model):
+    json = ndb.JsonProperty()
+
+    @classmethod
+    def get(cls):
+        key = str(ndb.Key("Contributors", "contributors").id())
+        return Contributors.get_by_id(key)
+
+    @classmethod
+    def put(cls, json):
+        key = str(ndb.Key("Contributors", "contributors").id())
+        contributors = Contributors.get_or_insert(key, json=json)
+        contributors.json = json
+        ndb.Model.put(contributors)
+
+
 class Issue(ndb.Model):
     number = ndb.IntegerProperty(required=True)
     updated_at = ndb.DateTimeProperty()

@@ -18,6 +18,7 @@ app.register_blueprint(admin, url_prefix='/admin')
 @app.route('/open-prs')
 @app.route('/stale-prs')
 @app.route('/users')
+@app.route('/top-contributors')
 @app.route('/users/<username>')
 def main(username=None):
     return render_template('index.html')
