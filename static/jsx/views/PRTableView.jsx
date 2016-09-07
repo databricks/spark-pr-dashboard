@@ -24,8 +24,12 @@ define([
     var JIRALink = React.createClass({
       render: function() {
         var link = "http://issues.apache.org/jira/browse/SPARK-" + this.props.number;
+        var className = "jira-link";
+        if (this.props.isClosed) {
+          className += " label label-pill label-danger";
+        }
         return (
-          <a className="jira-link" href={link} target="_blank">
+          <a className={className} href={link} target="_blank">
             {this.props.number}
           </a>
         );
@@ -116,7 +120,8 @@ define([
       render: function() {
         var pr = this.props.pr;
         var jiraLinkRows = _.map(pr.parsed_title.jiras, function(number) {
-          return (<li><JIRALink key={number} number={number}/></li>);
+          var isClosed = $.inArray(number, pr.closed_jiras) !== -1;
+          return (<li><JIRALink key={number} number={number} isClosed={isClosed}/></li>);
         });
         var jiraLinks = <ul className="jira-links-list">{jiraLinkRows}</ul>;
 
