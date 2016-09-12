@@ -60,6 +60,7 @@ def search_prs(prs):
             # Use the first JIRA's information to populate the "Priority" and "Issue Type" columns:
             jiras = pr.parsed_title["jiras"]
             if jiras:
+                d['closed_jiras'] = []
                 first_jira = JIRAIssue.get_by_id("%s-%i" % (app.config['JIRA_PROJECT'], jiras[0]))
                 if first_jira:
                     d['jira_priority_name'] = first_jira.priority_name
@@ -74,6 +75,8 @@ def search_prs(prs):
                     jira = JIRAIssue.get_by_id("%s-%i" % (app.config['JIRA_PROJECT'], jira_number))
                     if jira:
                         target_versions.update(jira.target_versions)
+                        if jira.is_closed:
+                            d['closed_jiras'].append(jira_number)
                 if target_versions:
                     d['jira_target_versions'] = natsorted(target_versions)
             json_dicts.append(d)
