@@ -129,6 +129,14 @@ define([
           url: '/search-open-prs',
           dataType: 'json',
           success: function(prs) {
+            _.each(prs, function(pr) {
+              var lastCommitterComment = _.find(pr.commenters, function(comment) {
+                return comment.is_committer;
+              });
+              if (lastCommitterComment) {
+                pr.updated_by_committer_at = lastCommitterComment.data.date[0];
+              }
+            });
             _this.setState({prs: prs, refreshInProgress: false});
             console.log("Done refreshing pull requests; prs.length=" + prs.length);
           },

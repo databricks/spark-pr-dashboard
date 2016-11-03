@@ -180,6 +180,13 @@ define([
 
         var updatedAt = $.timeago(pr.updated_at + "Z");
         var updatedCell = React.createElement("abbr", {title: pr.updated_at}, updatedAt);
+
+        var updatedByCommitterCell;
+        if (pr.updated_by_committer_at) {
+          var updatedByCommitterAt = $.timeago(pr.updated_by_committer_at);
+          updatedByCommitterCell =
+            React.createElement("abbr", {title: pr.updated_by_committer_at}, updatedByCommitterAt);
+        }
         var toolsCell =
           React.createElement("td", null, 
             React.createElement(TestWithJenkinsButton, {pr: pr})
@@ -236,6 +243,9 @@ define([
             ), 
             React.createElement("td", null, 
               updatedCell
+            ), 
+            React.createElement("td", null, 
+              updatedByCommitterCell
             )
           )
         );
@@ -260,7 +270,8 @@ define([
         'Changes': function(row) { return row.props.pr.lines_changed; },
         'Merges': function(row) { return row.props.pr.is_mergeable; },
         'Jenkins': function(row) { return row.props.pr.last_jenkins_outcome; },
-        'Updated': function(row) { return row.props.pr.updated_at; }
+        'Updated': function(row) { return row.props.pr.updated_at; },
+        'Updated by Committer': function(row) { return row.props.pr.updated_by_committer_at; }
       },
 
       columnNames: function() {
@@ -277,7 +288,8 @@ define([
           "Changes",
           "Merges",
           "Jenkins",
-          "Updated"
+          "Updated",
+          "Updated by Committer"
         ];
         if (this.props.showJenkinsButtons) {
           columNames.unshift("Tools");
