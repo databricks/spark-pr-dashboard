@@ -181,11 +181,11 @@ define([
         var updatedAt = $.timeago(pr.updated_at + "Z");
         var updatedCell = <abbr title={pr.updated_at}>{updatedAt}</abbr>;
 
-        var updatedByCommitterCell;
-        if (pr.updated_by_committer_at) {
-          var updatedByCommitterAt = $.timeago(pr.updated_by_committer_at);
-          updatedByCommitterCell =
-            <abbr title={pr.updated_by_committer_at}>{updatedByCommitterAt}</abbr>;
+        var committerCommentedCell;
+        if (pr.committer_commented_at) {
+          var committerCommentedAt = $.timeago(pr.committer_commented_at);
+          committerCommentedCell =
+            <abbr title={pr.committer_commented_at}>{committerCommentedAt}</abbr>;
         }
         var toolsCell =
           <td>
@@ -245,7 +245,7 @@ define([
               {updatedCell}
             </td>
             <td>
-              {updatedByCommitterCell}
+              {committerCommentedCell}
             </td>
           </tr>
         );
@@ -271,8 +271,8 @@ define([
         'Merges': function(row) { return row.props.pr.is_mergeable; },
         'Jenkins': function(row) { return row.props.pr.last_jenkins_outcome; },
         'Updated': function(row) { return row.props.pr.updated_at; },
-        'Updated by Committer':
-          function(row) { return row.props.pr.updated_by_committer_at || '.'; }
+        'Committer Commented':
+          function(row) { return row.props.pr.committer_commented_at || '.'; }
       },
 
       columnNames: function() {
@@ -290,7 +290,7 @@ define([
           "Merges",
           "Jenkins",
           "Updated",
-          "Updated by Committer"
+          "Committer Commented"
         ];
         if (this.props.showJenkinsButtons) {
           columNames.unshift("Tools");
