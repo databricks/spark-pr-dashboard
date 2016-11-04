@@ -121,6 +121,17 @@ define([
         return {prs: [], stalePrs: [], user: null, refreshInProgress: false};
       },
 
+      processFetchedPrs: function(prs) {
+        _.each(prs, function(pr) {
+          var lastCommitterComment = _.find(pr.commenters, function(comment) {
+            return comment.is_committer;
+          });
+          if (lastCommitterComment) {
+            pr.committer_commented_at = lastCommitterComment.data.date[0];
+          }
+        });
+      },
+
       refreshPrs: function() {
         var _this = this;
         this.setState({refreshInProgress: true});
@@ -129,6 +140,7 @@ define([
           url: '/search-open-prs',
           dataType: 'json',
           success: function(prs) {
+            _this.processFetchedPrs(prs);
             _this.setState({prs: prs, refreshInProgress: false});
             console.log("Done refreshing pull requests; prs.length=" + prs.length);
           },
@@ -147,6 +159,7 @@ define([
           url: '/search-stale-prs',
           dataType: 'json',
           success: function(stalePrs) {
+            _this.processFetchedPrs(stalePrs);
             _this.setState({stalePrs: stalePrs, refreshInProgress: false});
             console.log("Done refreshing stale pull requests; stalePrs.length=" + stalePrs.length);
           },

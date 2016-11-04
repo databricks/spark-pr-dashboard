@@ -53,7 +53,12 @@ def search_prs(prs):
                 'lines_deleted': pr.lines_deleted,
                 'lines_changed': pr.lines_changed,
                 'is_mergeable': pr.is_mergeable,
-                'commenters': [{'username': u, 'data': d} for (u, d) in pr.commenters],
+                'commenters': [
+                    {
+                        'username': u,
+                        'data': d,
+                        'is_committer': u in app.config.get('COMMITTER_GITHUB_USERNAMES', []),
+                    } for (u, d) in pr.commenters],
                 'last_jenkins_outcome': pr.last_jenkins_outcome,
                 'last_jenkins_comment': last_jenkins_comment_dict,
             }
