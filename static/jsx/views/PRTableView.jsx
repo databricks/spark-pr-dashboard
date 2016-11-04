@@ -216,7 +216,7 @@ define([
               {targetVersions}
             </td>
             <td>
-              <a href={pullLink} target="_blank">
+              <a href={pullLink} target="_blank" className="pr-title">
                 {pr.parsed_title.metadata + pr.parsed_title.title}
               </a>
             </td>
