@@ -88,4 +88,6 @@ span[data-toggle="popover"]:focus {
 
 .pr-title {
     word-break: break-word;
+    display: inline-block;
+    min-width: 300px;
 }
