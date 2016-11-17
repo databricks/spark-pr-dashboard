@@ -216,7 +216,7 @@ define([
               targetVersions
             ), 
             React.createElement("td", null, 
-              React.createElement("a", {href: pullLink, target: "_blank"}, 
+              React.createElement("a", {href: pullLink, target: "_blank", className: "pr-title"}, 
                 pr.parsed_title.metadata + pr.parsed_title.title
               )
             ), 

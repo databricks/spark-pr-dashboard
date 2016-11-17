@@ -85,3 +85,9 @@ span[data-toggle="popover"]:focus {
   list-style: none;
   padding-left:0;
 }
+
+.pr-title {
+    word-break: break-word;
+    display: inline-block;
+    min-width: 300px;
+}
