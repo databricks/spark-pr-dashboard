@@ -6,9 +6,11 @@ define([
     'views/Dashboard',
     'views/StaleDashboard',
     'views/UsersPage',
+    'views/ContributorsPage',
     'views/UserDashboard'
   ],
-  function(React, Router, $, _, Dashboard, StaleDashboard, UsersPage, UserDashboard) {
+  function(React, Router, $, _, Dashboard, StaleDashboard,
+  UsersPage, ContributorsPage, UserDashboard) {
     "use strict";
 
     var RouterMixin = Router.RouterMixin;
@@ -78,7 +80,8 @@ define([
         '/open-prs': 'openPrs',
         '/stale-prs': 'staleOpenPrs',
         '/users/': 'users',
-        '/users/:username*': 'userDashboard'
+        '/users/:username*': 'userDashboard',
+        '/top-contributors': 'topContributors'
       },
 
       userIsAdmin: function() {
@@ -109,6 +112,10 @@ define([
         return (<UsersPage prs={this.state.prs}/>);
       },
 
+      topContributors: function() {
+        return (<ContributorsPage topContributors={this.state.topContributors}/>);
+      },
+
       userDashboard: function(username) {
         return (
           <UserDashboard
@@ -118,7 +125,7 @@ define([
       },
 
       getInitialState: function() {
-        return {prs: [], stalePrs: [], user: null, refreshInProgress: false};
+        return {prs: [], stalePrs: [], user: null, topContributors: null, refreshInProgress: false};
       },
 
       processFetchedPrs: function(prs) {
@@ -182,9 +189,23 @@ define([
         });
       },
 
+      refreshContributors: function() {
+        var _this = this;
+        $.ajax({
+          url: '/tasks/github/top-contributors',
+          dataType: 'json',
+          success: function(topContributors) {
+            if (topContributors) {
+              _this.setState({topContributors: topContributors});
+            }
+          }
+        });
+      },
+
       componentDidMount: function() {
         this.refreshPrs();
         this.refreshUserInfo();
+        this.refreshContributors();
         // Refresh every 5 minutes:
         this.refreshInterval = window.setInterval(this.refreshPrs, 1000 * 60 * 5);
       },
@@ -250,6 +271,11 @@ define([
                   <li className={pathname.indexOf('/users') === 0 ? "active" : ""}>
                     <a href="/users">
                     Users
+                    </a>
+                  </li>
+                  <li className={pathname.indexOf('/top-contributors') === 0 ? "active" : ""}>
+                    <a href="/top-contributors">
+                      Top Contributors
                     </a>
                   </li>
                   {this.userIsAdmin() ? adminTab : ""}
