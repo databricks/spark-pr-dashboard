@@ -45,7 +45,7 @@ def start_issue_progress(issue):
                          for transition in jira_client.transitions(issue)
                          if transition['name'] == 'Start Progress'][0]
         # Passing transition by name doesn't work, though it should according to the docs...
-        jira_client.transition_issue(issue=issue, transitionId=transition_id)
+        jira_client.transition_issue(issue=issue, transition=transition_id)
         logging.info("Started progress on JIRA issue {j}.".format(j=issue))
     finally:
         # Restore the original assignee.
