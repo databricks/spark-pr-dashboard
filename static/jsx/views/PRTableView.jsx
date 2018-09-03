@@ -191,6 +191,31 @@ define([
           <td>
             <TestWithJenkinsButton pr={pr}/>
           </td>;
+
+        var priorityIcon;
+        if (pr.jira_priority_icon_url) {
+          priorityIcon = (
+            <img
+              width="16"
+              height="16"
+              src={pr.jira_priority_icon_url}
+              title={pr.jira_priority_name}
+              alt={pr.jira_priority_name}/>
+          );
+        }
+
+        var issueTypeIcon;
+        if (pr.jira_issuetype_icon_url) {
+          issueTypeIcon = (
+            <img
+              width="16"
+              height="16"
+              src={pr.jira_issuetype_icon_url}
+              title={pr.jira_issuetype_name}
+              alt={pr.jira_issuetype_name}/>
+          );
+        }
+
         return (
           <tr>
             {this.props.showJenkinsButtons ? toolsCell : ""}
@@ -200,18 +225,8 @@ define([
               </a>
             </td>
             <td>{jiraLinks}</td>
-            <td>
-              <img
-                src={pr.jira_priority_icon_url}
-                title={pr.jira_priority_name}
-                alt={pr.jira_priority_name}/>
-            </td>
-            <td>
-              <img
-                src={pr.jira_issuetype_icon_url}
-                title={pr.jira_issuetype_name}
-                alt={pr.jira_issuetype_name}/>
-            </td>
+            <td>{priorityIcon}</td>
+            <td>{issueTypeIcon}</td>
             <td>
               {targetVersions}
             </td>
