@@ -1,6 +1,5 @@
-application: spark-prs
-version: 3
 runtime: python27
+instance_class: F4
 api_version: 1
 threadsafe: yes
 default_expiration: 1m
