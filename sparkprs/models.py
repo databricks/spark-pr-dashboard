@@ -77,6 +77,7 @@ class Issue(ndb.Model):
         ("Python", "python|pyspark", "python"),
         ("YARN", "yarn", "yarn"),
         ("Mesos", "mesos", "mesos"),
+        ("Kubernetes", "K8S", "k8s"),
         ("Web UI", "webui|(web ui)", "spark/ui/"),
         ("Build", "build", "(pom\.xml)|project"),
         ("Docs", "docs", "docs|README"),
