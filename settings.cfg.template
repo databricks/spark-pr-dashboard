@@ -42,7 +42,7 @@ JIRA_PASSWORD = ''
 JIRA_PROJECT = 'SPARK'
 
 # remove these tags from pull request titles
-JIRA_TAGS_TO_REMOVE = ["MLLIB", "ML", "CORE", "PYSPARK", "SQL", "STREAMING", "YARN", "GRAPHX"]
+JIRA_TAGS_TO_REMOVE = ["MLLIB", "ML", "CORE", "PYSPARK", "SQL", "STREAMING", "YARN", "K8S", "GRAPHX"]
 
 # Settings for integrating with pull request builder bots (used for deleting outdated comments).
 # These tokens only need permission to edit issue comments.
