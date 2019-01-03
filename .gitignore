@@ -5,3 +5,6 @@ lib/
 .idea/
 settings.cfg
 node_modules/
+datastore
+package-lock.json
+settings.cfg.local

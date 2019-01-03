@@ -98,10 +98,9 @@ class Issue(ndb.Model):
         modified and any tags added to the pull request's title (such as [GraphX]).
         """
         components = []
-        title = ((self.pr_json and self.pr_json["title"]) or self.title or "")
         modified_files = [f["filename"] for f in (self.files_json or [])]
         for (component_name, pr_title_regex, filename_regex) in Issue._components:
-            if re.search(pr_title_regex, title, re.IGNORECASE) or \
+            if re.search(pr_title_regex, self.raw_title, re.IGNORECASE) or \
                     any(re.search(filename_regex, f, re.I) for f in modified_files):
                 components.append(component_name)
         return components or ["Core"]

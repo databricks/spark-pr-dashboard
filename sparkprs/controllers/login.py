@@ -20,6 +20,7 @@ def before_request():
     g.user = None
     if 'github_login' in session:
         g.user = User.query(User.github_login == session['github_login']).get()
+        session.permanent = True
 
 
 @login.route('/github-callback')

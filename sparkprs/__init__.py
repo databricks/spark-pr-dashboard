@@ -1,7 +1,6 @@
 import os
 from flask import Flask
 from flask.ext.cache import Cache
-from werkzeug.contrib.cache import SimpleCache
 
 is_production = os.getenv('SERVER_SOFTWARE', '').startswith('Google App Engine/')
 is_test = os.getenv('CI', '') == 'true'

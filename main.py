@@ -1,5 +1,4 @@
 from flask import render_template
-import requests
 import requests_toolbelt.adapters.appengine
 
 from sparkprs import app
