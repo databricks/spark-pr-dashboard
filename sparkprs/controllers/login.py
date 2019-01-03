@@ -22,6 +22,7 @@ def before_request():
         g.user = User.query(User.github_login == session['github_login']).get()
         session.permanent = True
 
+
 @login.route('/github-callback')
 def github_authorized_callback():
     # This is based loosely on https://github.com/cenkalti/github-flask
